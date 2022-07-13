@@ -1,4 +1,4 @@
-import { forwardRef, ReactNode } from "react";
+import { ReactNode } from "react";
 
 import {
   FormLabel,
@@ -17,7 +17,7 @@ interface RadioGroupProps extends RadioGroupPropsChakra {
   
 }
 
-const RadioGroupBase = ({ name, label, children, defaultValue, ...rest}: RadioGroupProps) => {
+export function RadioGroup({ name, label, children, defaultValue, ...rest}: RadioGroupProps){
   return (
     <FormControl as='fieldset' m="0 auto" >
       {!!label && <FormLabel as='legend' htmlFor={name}>{label}</FormLabel>}
@@ -34,4 +34,3 @@ const RadioGroupBase = ({ name, label, children, defaultValue, ...rest}: RadioGr
   );
 };
 
-export const RadioGroup = forwardRef(RadioGroupBase);

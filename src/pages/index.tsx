@@ -6,12 +6,21 @@ import {
   HStack,
   Radio,
   Stack,
+  Button,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import { RadioGroup } from "../components/CheckBoxGroup";
 
 import { InputNumber } from "../components/InputNumber";
+import { RangeSlider } from "../components/RangeSlider";
+import { Slider } from "../components/Slider";
 
 export default function Home() {
+
+  const [beamLength, setBeamLength] = useState(20);
+
+
+  
   return (
     <>
       <Center h={100}>
@@ -47,14 +56,16 @@ export default function Home() {
           <Box border="solid 1px white" p={6} borderRadius={10} h={400}>
             <Stack spacing={10}>
               <InputNumber name="strengthValue" label="Valor da força" />
-              <InputNumber name="strengthDistance" label="Distância da força" />
+              <Slider name="strengthDistance" label="Local de aplicação da força" beamLength={beamLength}/>
+              <Button colorScheme="blue">Adicionar Força</Button>
             </Stack>
           </Box>
 
           <Box border="solid 1px white" p={6} borderRadius={10} mt={10} h={400}>
             <Stack spacing={10}>
-              <InputNumber name="torqueValue" label="Momento" />
-              <InputNumber name="torqueDistance" label="Distancia do torque" />
+              <InputNumber name="momentValue" label="Momento" />
+              <Slider name="distanceMoment" label="Localização de aplicação do momento" beamLength={beamLength} />
+              <Button colorScheme="blue">Adicionar Momento</Button>
             </Stack>
           </Box>
 
@@ -62,8 +73,9 @@ export default function Home() {
             <Stack spacing={10}>
               Carga distribuída
               <InputNumber name="chargeValue" label="Valor da carga" />
-              <InputNumber name="startCharge" label="Inicio da carga" />
-              <InputNumber name="endCharge" label="Final da carga" />
+              <RangeSlider name="distanceCharge" label="Distribuição da Carga" beamLength={beamLength} />
+              <Button colorScheme="blue">Adicionar Carga</Button>
+
             </Stack>
           </Box>
         </HStack>
