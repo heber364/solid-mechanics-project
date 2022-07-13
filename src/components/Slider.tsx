@@ -16,10 +16,12 @@ interface SliderProps extends SliderPropsChakra {
   name: string;
   label?: string;
   beamLength: number;
+  sliderValue: number;
+  onSliderValueChange: (sliderValue: number) => void;
 }
 
-export function Slider({ name, label, beamLength, ...rest }: SliderProps) {
-  const [sliderValue, setSliderValue] = useState(5);
+export function Slider({ name, label, beamLength, sliderValue, onSliderValueChange, ...rest }: SliderProps) {
+
   const [showTooltip, setShowTooltip] = useState(false);
 
   const labelStyles = {
@@ -32,28 +34,29 @@ export function Slider({ name, label, beamLength, ...rest }: SliderProps) {
     <FormControl>
       {!!label && <FormLabel htmlFor={name}>{label}</FormLabel>}
       <SliderChakra
-        mt={6}
         id={name}
         defaultValue={0.2*beamLength}
         min={0}
         max={beamLength}
         colorScheme="blue"
-        onChange={(v) => setSliderValue(v)}
+        onChange={(val) => onSliderValueChange(val)}
+        
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
+        {...rest}
       >
         <SliderTrack>
           <SliderFilledTrack />
         </SliderTrack>
         <SliderMark value={0.20*beamLength} {...labelStyles}>
-            {0.20*beamLength}m
+          {parseFloat(String(0.20*beamLength)).toFixed(2)}m
         </SliderMark>
         <SliderMark value={0.50*beamLength} {...labelStyles}>
-            {0.5*beamLength}m
+          {parseFloat(String(0.5*beamLength)).toFixed(2)}m
         </SliderMark>
 
         <SliderMark value={0.80*beamLength} {...labelStyles}>
-            {0.80*beamLength}m
+          {parseFloat(String(0.80*beamLength)).toFixed(2)}m
         </SliderMark>
         <Tooltip
           hasArrow
