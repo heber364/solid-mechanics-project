@@ -1,5 +1,3 @@
-import { forwardRef } from "react";
-
 import {
   FormLabel,
   FormControl,
@@ -17,7 +15,7 @@ interface InputProps extends NumberInputProps {
   pHolder?: string;
 }
 
-const InputNumberBase = ({ name, label, pHolder, ...rest}: InputProps) => {
+export function InputNumber({ name, label, pHolder, ...rest}: InputProps){
   return (
     <FormControl>
       {!!label && <FormLabel htmlFor={name}>{label}</FormLabel>}
@@ -37,4 +35,4 @@ const InputNumberBase = ({ name, label, pHolder, ...rest}: InputProps) => {
   );
 };
 
-export const InputNumber = forwardRef(InputNumberBase);
+

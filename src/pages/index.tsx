@@ -268,6 +268,7 @@ export default function Home() {
               <Stack>
                 {forces.map((force) => (
                   <TagForce
+                    key={force.id}
                     value={force.value}
                     distance={force.distance}
                     onRemoveTag={() =>
@@ -303,12 +304,13 @@ export default function Home() {
                 Adicionar Momento
               </Button>
               <Stack>
-                {moments.map((moments) => (
+                {moments.map((moment) => (
                   <TagMoment
-                    value={moments.value}
-                    distance={moments.distance}
+                    key={moment.id}
+                    value={moment.value}
+                    distance={moment.distance}
                     onRemoveTag={() =>
-                      handleRemoveMomentsInVectorMoment(moments.id)
+                      handleRemoveMomentsInVectorMoment(moment.id)
                     }
                   />
                 ))}
@@ -363,6 +365,7 @@ export default function Home() {
               <Stack>
                 {weights.map((weight) => (
                   <TagWeight
+                    key={weight.id}
                     a={weight.coefficientA}
                     b={weight.coefficientB}
                     c={weight.coefficientC}
