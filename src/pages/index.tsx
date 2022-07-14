@@ -10,8 +10,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-
-
 import { RadioGroup } from "../components/CheckBoxGroup";
 import { InputNumber } from "../components/InputNumber";
 import { RangeSlider } from "../components/RangeSlider";
@@ -20,10 +18,9 @@ import { TagForce } from "../components/Tag/TagForce";
 import { TagMoment } from "../components/Tag/TagMoment";
 import { TagWeight } from "../components/Tag/TagWeight";
 
-
-import { beamWidthLimit } from "./constants";
 import { useEffect, useState } from "react";
 
+const beamWidthLimit = 100;
 
 interface ForceProps {
   id: number;

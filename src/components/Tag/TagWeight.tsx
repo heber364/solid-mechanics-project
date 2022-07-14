@@ -16,7 +16,6 @@ interface TagProps{
     module: number;
     xBar: number;
     onRemoveTag: MouseEventHandler;
-
 }
 
 export function TagWeight({ a, b, c, start, end, module, xBar, onRemoveTag }: TagProps) {
