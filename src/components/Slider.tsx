@@ -35,7 +35,7 @@ export function Slider({ name, label, beamLength, sliderValue, onSliderValueChan
       {!!label && <FormLabel htmlFor={name}>{label}</FormLabel>}
       <SliderChakra
         id={name}
-        defaultValue={0.2*beamLength}
+        defaultValue={0}
         min={0}
         max={beamLength}
         colorScheme="blue"

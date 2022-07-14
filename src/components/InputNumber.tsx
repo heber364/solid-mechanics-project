@@ -14,18 +14,20 @@ import {
 interface InputProps extends NumberInputProps {
   name: string;
   label?: string;
+  pHolder?: string;
 }
 
-const InputNumberBase = ({ name, label, ...rest}: InputProps) => {
+const InputNumberBase = ({ name, label, pHolder, ...rest}: InputProps) => {
   return (
     <FormControl>
       {!!label && <FormLabel htmlFor={name}>{label}</FormLabel>}
 
       <NumberInput 
         id={name}
+        
         {...rest}
         >
-        <NumberInputField />
+        <NumberInputField placeholder={pHolder}/>
         <NumberInputStepper>
           <NumberIncrementStepper />
           <NumberDecrementStepper />
