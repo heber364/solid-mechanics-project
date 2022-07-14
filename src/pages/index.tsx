@@ -1,5 +1,4 @@
 import {
-  Center,
   Box,
   Heading,
   Flex,
@@ -7,8 +6,11 @@ import {
   Radio,
   Stack,
   Button,
+  Divider,
+  Text,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+
+
 
 import { RadioGroup } from "../components/CheckBoxGroup";
 import { InputNumber } from "../components/InputNumber";
@@ -18,7 +20,10 @@ import { TagForce } from "../components/Tag/TagForce";
 import { TagMoment } from "../components/Tag/TagMoment";
 import { TagWeight } from "../components/Tag/TagWeight";
 
+
 import { beamWidthLimit } from "./constants";
+import { useEffect, useState } from "react";
+
 
 interface ForceProps {
   id: number;
@@ -39,13 +44,22 @@ interface WeightProps {
   coefficientC: number;
   start: number;
   end: number;
+  forceModule: number;
+  forceModulePosition: number;
+}
+
+interface SupportProps {
+  reactionForce: number;
 }
 
 export default function Home() {
   /*Valores temporarios dos inputs*/
   const [beamLength, setBeamLength] = useState(0);
 
-  const [support, setSupport] = useState("");
+  const [supportType, setSupportType] = useState("support1");
+
+  const [ supportA, setSupportA ] = useState<SupportProps>({reactionForce: 0});
+  const [ supportB, setSupportB ] = useState<SupportProps>({reactionForce: 0});
 
   const [forceValue, setForceValue] = useState(0);
   const [forceDistance, setForceDistance] = useState(0);
@@ -53,9 +67,9 @@ export default function Home() {
   const [momentValue, setMomentValue] = useState(0);
   const [momentDistance, setMomentDistance] = useState(0);
 
-  const [coefficientAWeightFuntion, setCoefficientAWeightFuntion] = useState(0);
-  const [coefficientBWeightFuntion, setCoefficientBWeightFuntion] = useState(0);
-  const [coefficientCWeightFuntion, setCoefficientCWeightFuntion] = useState(0);
+  const [coefficientAWeightFunction, setCoefficientAWeightFunction] = useState(0);
+  const [coefficientBWeightFunction, setCoefficientBWeightFunction] = useState(0);
+  const [coefficientCWeightFunction, setCoefficientCWeightFunction] = useState(0);
 
   const [weightStartPoint, setWeightStartPoint] = useState(0);
   const [weightEndPoint, setWeightEndPoint] = useState(0);
@@ -105,15 +119,37 @@ export default function Home() {
 
   /*Salva as cargas distribuidas em um vetor*/
   function handleSaveWeightsInVectorWeight() {
+
+    const Integral = require('sm-integral');
+
+    /* funcao da carga distribuida */
+    function expressionDistributedWeight(x) {
+      return  coefficientAWeightFunction*x*x + coefficientBWeightFunction*x + coefficientCWeightFunction;
+    }
+
+    /*Módulo da força de toda carga distribuida */
+    const weightModule = Integral.integrate(expressionDistributedWeight, 0, weightEndPoint - weightStartPoint);
+    
+    /* funcao do X barra */
+    function expressionDistanceXBar(x) {
+      return  coefficientAWeightFunction*x*x*x + coefficientBWeightFunction*x*x + coefficientCWeightFunction*x;
+    }
+
+    /*Posição do modulo da força resultante */
+    const xBar = Integral.integrate(expressionDistanceXBar, 0, weightEndPoint - weightStartPoint)/weightModule + weightStartPoint;
+    
+    
     setWeights((prevstate) => [
       ...prevstate,
       {
         id: Math.random(),
-        coefficientA: coefficientAWeightFuntion,
-        coefficientB: coefficientBWeightFuntion,
-        coefficientC: coefficientCWeightFuntion,
+        coefficientA: coefficientAWeightFunction,
+        coefficientB: coefficientBWeightFunction,
+        coefficientC: coefficientCWeightFunction,
         start: weightStartPoint,
         end: weightEndPoint,
+        forceModule: weightModule,
+        forceModulePosition: xBar,
       },
     ]);
   }
@@ -131,34 +167,72 @@ export default function Home() {
     setWeightEndPoint(Number(points[1]));
   }
 
+  /*Verifica se há o minimo de dados preenchidos para o calculo da carga distribuida */
+  function emptyWeightData(){
+    if(weightEndPoint == 0){
+      return true;
+    }else if(coefficientAWeightFunction == 0 && coefficientBWeightFunction  == 0 && coefficientCWeightFunction == 0){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  function handleCalculateSupportReactions(){
+    if(supportType == "support1"){
+      
+      var sumForcesByDistances = 0;
+      var sumForces = 0;
+
+      forces.map(force =>{
+        sumForcesByDistances += force.value*force.distance
+        sumForces += force.value;
+      })
+
+      var sumMoments = 0;
+      moments.map(moment =>{
+        sumMoments += moment.value;
+      })
+
+      var sumForcesModuleByXBar = 0;
+      var sumForcesModule = 0;
+
+      weights.map(weight => {
+        sumForcesModuleByXBar += weight.forceModule * weight.forceModulePosition;
+        sumForcesModule += weight.forceModule;
+      })
+
+      const By = (-(sumForcesByDistances + sumMoments + sumForcesModuleByXBar)/beamLength)
+      const Ay = (-(By + sumForces + sumForcesModule))
+
+
+      setSupportA({reactionForce:Ay})
+      setSupportB({reactionForce:By})
+    }
+
+  }
+
+
   useEffect(() => {
-    // console.log("Força", forceValue, forceDistance, "Momento", momentValue, momentDistance, "Carga", weightValue, "P1", weightStartPoint, "P2", weightEndPoint);
-    // console.log("Tipo de Suporte", support)
     console.log(weights);
   }, [weights]);
 
   return (
-    <>
-      <Center h={100}>
-        <Heading> Trabalho de Mecânica dos Sólidos</Heading>
-      </Center>
+    <Flex direction="column" h="100vh" justify="center" px={20}>
+      <Heading mt={8}> Trabalho de Mecânica dos Sólidos</Heading>
+      <Divider mt={2} />
 
-      <Center>
-        <Box>
-          <RadioGroup
-            name="typeSupport"
-            label="Tipo de apoio"
-            defaultValue="support1"
-            onChange={(support) => setSupport(support)}
-          >
-            <Radio value="support1">Engaste - Primeiro Gênero</Radio>
-            <Radio value="support2">Engaste - Sem apoio</Radio>
-            <Radio value="support3">Primeiro Gênero - Primeiro Gênero</Radio>
-          </RadioGroup>
-        </Box>
-      </Center>
-
-      <Center mt={6}>
+      <Stack mt={8} spacing={10}>
+        <RadioGroup
+          name="typeSupport"
+          label="Tipo de apoio"
+          defaultValue="support1"
+          onChange={(support) => setSupportType(support)}
+        >
+          <Radio value="support1">Apoio simples - Apoio simples</Radio>
+          <Radio value="support2">Apoio simples - Engaste</Radio>
+          <Radio value="support3">Sem apoio - Engaste</Radio>
+        </RadioGroup>
         <Box w={800}>
           <Slider
             name="beamLeagth"
@@ -168,11 +242,9 @@ export default function Home() {
             sliderValue={beamLength}
           />
         </Box>
-      </Center>
 
-      <Flex justify="center" mt={10}>
-        <HStack spacing={5}>
-          <Box  p={4} h={400}>
+        <Flex direction="row" justify="flex-start"  gap={6}>
+          <Box>
             <Stack spacing={10}>
               <InputNumber
                 name="strengthValue"
@@ -185,12 +257,11 @@ export default function Home() {
                 beamLength={beamLength}
                 onSliderValueChange={setForceDistance}
                 sliderValue={forceDistance}
-            
-  
               />
               <Button
                 colorScheme="blue"
                 onClick={() => handleSaveForcesInVectorForce()}
+                isDisabled={forceValue==0}
               >
                 Adicionar Força
               </Button>
@@ -208,7 +279,7 @@ export default function Home() {
             </Stack>
           </Box>
 
-          <Box  p={4}   h={400}>
+          <Box>
             <Stack spacing={10}>
               <InputNumber
                 focusBorderColor="purple.500"
@@ -227,6 +298,7 @@ export default function Home() {
               <Button
                 colorScheme="purple"
                 onClick={() => handleSaveMomentsInVectorMoment()}
+                isDisabled={momentValue==0}
               >
                 Adicionar Momento
               </Button>
@@ -244,7 +316,7 @@ export default function Home() {
             </Stack>
           </Box>
 
-          <Box p={4} h={400}>
+          <Box >
             <Heading as="h2" size="sm" mb={3}>
               Equação que descreve a carga
             </Heading>
@@ -255,21 +327,21 @@ export default function Home() {
                   w={32}
                   name="chargeAValue"
                   pHolder="A(x^2)"
-                  onChange={(a) => setCoefficientAWeightFuntion(Number(a))}
+                  onChange={(a) => setCoefficientAWeightFunction(Number(a))}
                 />
                 <InputNumber
                   focusBorderColor="pink.500"
                   w={32}
                   name="chargeBValue"
                   pHolder="B(x)"
-                  onChange={(b) => setCoefficientBWeightFuntion(Number(b))}
+                  onChange={(b) => setCoefficientBWeightFunction(Number(b))}
                 />
                 <InputNumber
                   focusBorderColor="pink.500"
                   w={32}
                   name="chargeCValue"
                   pHolder="C"
-                  onChange={(c) => setCoefficientCWeightFuntion(Number(c))}
+                  onChange={(c) => setCoefficientCWeightFunction(Number(c))}
                 />
               </HStack>
 
@@ -284,6 +356,7 @@ export default function Home() {
               <Button
                 colorScheme="pink"
                 onClick={() => handleSaveWeightsInVectorWeight()}
+                isDisabled={emptyWeightData()}
               >
                 Adicionar Carga
               </Button>
@@ -295,6 +368,8 @@ export default function Home() {
                     c={weight.coefficientC}
                     start={weight.start}
                     end={weight.end}
+                    module={weight.forceModule}
+                    xBar={weight.forceModulePosition}
                     onRemoveTag={() =>
                       handleRemoveWeightsInVectorWeight(weight.id)
                     }
@@ -303,8 +378,18 @@ export default function Home() {
               </Stack>
             </Stack>
           </Box>
-        </HStack>
-      </Flex>
-    </>
+        </Flex>
+      </Stack>
+      <Button 
+        variant="solid" 
+        colorScheme="blackAlpha" 
+        onClick={()=>handleCalculateSupportReactions()}
+        >
+          Calcular Força e momento resultantes
+      </Button>
+      <Text fontSize="2xl">Reação de apoio em Ay: {parseFloat(String(supportA.reactionForce)).toFixed(2)}</Text>
+      <Text fontSize="2xl">Reação de apoio em By: {parseFloat(String(supportB.reactionForce)).toFixed(2)}</Text>
+
+    </Flex>
   );
 }
