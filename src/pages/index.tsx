@@ -20,6 +20,11 @@ import { TagWeight } from "../components/Tag/TagWeight";
 
 import { useEffect, useState } from "react";
 
+import { Chart } from "react-google-charts";
+import _ from "lodash"
+import produce from "immer"
+
+
 const beamWidthLimit = 100;
 
 interface ForceProps {
@@ -49,6 +54,14 @@ interface SupportProps {
   reactionForce: number;
 }
 
+
+
+const options = {
+  title: "Grafico de forças de cizalhamento",
+  
+  legend: { position: "bottom" },
+};
+
 export default function Home() {
   /*Valores temporarios dos inputs*/
   const [beamLength, setBeamLength] = useState(0);
@@ -76,6 +89,8 @@ export default function Home() {
   const [moments, setMoments] = useState<MomentProps[]>([]);
   const [weights, setWeights] = useState<WeightProps[]>([]);
 
+  const [ chartData, setChartData ] = useState([]);
+  
   /*Salva as forças em um vetor*/
   function handleSaveForcesInVectorForce() {
     setForces((prevstate) => [
@@ -85,7 +100,7 @@ export default function Home() {
         value: forceValue,
         distance: forceDistance,
       },
-    ]);
+    ]);  
   }
 
   /*Remove as forças de um vetor*/
@@ -175,6 +190,7 @@ export default function Home() {
     }
   }
 
+  /*Calcula reações */
   function handleCalculateSupportReactions(){
     if(supportType == "support1"){
       
@@ -206,13 +222,87 @@ export default function Home() {
       setSupportA({reactionForce:Ay})
       setSupportB({reactionForce:By})
     }
+    loadChartData();
+  }
+
+  /* Ordena vetor de forças por posição*/
+  function handleOrderForcesByPosition(){
+    const aux = forces.sort(function(a, b): any{
+      if(a.distance < b.distance){
+        return -1;
+      
+      }else{
+        return true
+      }
+    });
+
+    setForces(aux)
+  }
+
+  function loadChartData(){
+
+    const data1 = [
+      ["x", "y"],
+      [0, 4],
+      [1, 4],
+      [1, 2],
+      [2, 2],
+      [2, -2],
+      [3, -2],
+      [3, 1],
+      [4, 1],
+      [4, -5],
+      [5 ,-5],
+      [5, 0]
+    
+    ];
+
+    const allForces = [
+      {id: Math.random(), value:supportA.reactionForce, distance: 0},
+      ...forces,
+      {zid: Math.random(), value:supportB.reactionForce, distance: beamLength},
+    ]
+
+
+    const values = _.map(allForces, ( value, key ) =>[
+         allForces[key].distance,
+         allForces[key].value,
+    ])  
+
+    var data = [];
+
+    const newData = produce(data, (draft) => {
+      var numeroAnterior = supportA.reactionForce;
+     
+      for (let i = 0; i < values.length; i++) {
+        // console.log("Numero anterior", numeroAnterior, "valor", values[i][1])
+        if (i == 0) {
+          draft.push(["xAxis", "yAxis"])
+          draft.push([0, numeroAnterior]);
+        }else{
+          
+          draft.push([values[i][0], numeroAnterior]);
+          draft.push([values[i][0], numeroAnterior + values[i][1]]);
+          numeroAnterior += values[i][1];
+          
+        }
+      }
+      
+     
+    });
+
+    console.log(newData);
+
+    setChartData(newData)
+    
+
 
   }
 
-
   useEffect(() => {
-    console.log(weights);
-  }, [weights]);
+
+    handleOrderForcesByPosition();
+  },[forces]);
 
   return (
     <Flex direction="column" h="100vh" justify="center" px={20}>
@@ -389,7 +479,13 @@ export default function Home() {
       </Button>
       <Text fontSize="2xl">Reação de apoio em Ay: {parseFloat(String(supportA.reactionForce)).toFixed(2)}</Text>
       <Text fontSize="2xl">Reação de apoio em By: {parseFloat(String(supportB.reactionForce)).toFixed(2)}</Text>
-
+      <Chart
+        chartType="LineChart"
+        width="100%"
+        height="400px"
+        data={chartData}
+        options={options}
+      />
     </Flex>
   );
 }
