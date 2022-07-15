@@ -21,9 +21,8 @@ import { TagWeight } from "../components/Tag/TagWeight";
 import { useEffect, useState } from "react";
 
 import { Chart } from "react-google-charts";
-import _ from "lodash"
-import produce from "immer"
-
+import _ from "lodash";
+import produce from "immer";
 
 const beamWidthLimit = 100;
 
@@ -54,12 +53,13 @@ interface SupportProps {
   reactionForce: number;
 }
 
-
-
 const options = {
-  title: "Grafico de forças de cizalhamento",
-  
+  title: "Gráfico de Força de Cisalhamento", titleTextStyle: { color: "#fff", fontSize: 22},
+  hAxis: { title: "Eixo x", titleTextStyle: { color: "#fff" } },
+  vAxis: { title: "Eixo y", titleTextStyle: { color: "#fff" } },
   legend: { position: "bottom" },
+  backgroundColor: "transparent",
+  colors: ["#de3c9a"],
 };
 
 export default function Home() {
@@ -68,8 +68,8 @@ export default function Home() {
 
   const [supportType, setSupportType] = useState("support1");
 
-  const [ supportA, setSupportA ] = useState<SupportProps>({reactionForce: 0});
-  const [ supportB, setSupportB ] = useState<SupportProps>({reactionForce: 0});
+  const [supportA, setSupportA] = useState<SupportProps>({ reactionForce: 0 });
+  const [supportB, setSupportB] = useState<SupportProps>({ reactionForce: 0 });
 
   const [forceValue, setForceValue] = useState(0);
   const [forceDistance, setForceDistance] = useState(0);
@@ -77,9 +77,12 @@ export default function Home() {
   const [momentValue, setMomentValue] = useState(0);
   const [momentDistance, setMomentDistance] = useState(0);
 
-  const [coefficientAWeightFunction, setCoefficientAWeightFunction] = useState(0);
-  const [coefficientBWeightFunction, setCoefficientBWeightFunction] = useState(0);
-  const [coefficientCWeightFunction, setCoefficientCWeightFunction] = useState(0);
+  const [coefficientAWeightFunction, setCoefficientAWeightFunction] =
+    useState(0);
+  const [coefficientBWeightFunction, setCoefficientBWeightFunction] =
+    useState(0);
+  const [coefficientCWeightFunction, setCoefficientCWeightFunction] =
+    useState(0);
 
   const [weightStartPoint, setWeightStartPoint] = useState(0);
   const [weightEndPoint, setWeightEndPoint] = useState(0);
@@ -89,8 +92,8 @@ export default function Home() {
   const [moments, setMoments] = useState<MomentProps[]>([]);
   const [weights, setWeights] = useState<WeightProps[]>([]);
 
-  const [ chartData, setChartData ] = useState([]);
-  
+  const [chartData, setChartData] = useState([]);
+
   /*Salva as forças em um vetor*/
   function handleSaveForcesInVectorForce() {
     setForces((prevstate) => [
@@ -100,7 +103,7 @@ export default function Home() {
         value: forceValue,
         distance: forceDistance,
       },
-    ]);  
+    ]);
   }
 
   /*Remove as forças de um vetor*/
@@ -131,26 +134,43 @@ export default function Home() {
 
   /*Salva as cargas distribuidas em um vetor*/
   function handleSaveWeightsInVectorWeight() {
-
-    const Integral = require('sm-integral');
+    const Integral = require("sm-integral");
 
     /* funcao da carga distribuida */
     function expressionDistributedWeight(x) {
-      return  coefficientAWeightFunction*x*x + coefficientBWeightFunction*x + coefficientCWeightFunction;
+      return (
+        coefficientAWeightFunction * x * x +
+        coefficientBWeightFunction * x +
+        coefficientCWeightFunction
+      );
     }
 
     /*Módulo da força de toda carga distribuida */
-    const weightModule = Integral.integrate(expressionDistributedWeight, 0, weightEndPoint - weightStartPoint);
-    
+    const weightModule = Integral.integrate(
+      expressionDistributedWeight,
+      0,
+      weightEndPoint - weightStartPoint
+    );
+
     /* funcao do X barra */
     function expressionDistanceXBar(x) {
-      return  coefficientAWeightFunction*x*x*x + coefficientBWeightFunction*x*x + coefficientCWeightFunction*x;
+      return (
+        coefficientAWeightFunction * x * x * x +
+        coefficientBWeightFunction * x * x +
+        coefficientCWeightFunction * x
+      );
     }
 
     /*Posição do modulo da força resultante */
-    const xBar = Integral.integrate(expressionDistanceXBar, 0, weightEndPoint - weightStartPoint)/weightModule + weightStartPoint;
-    
-    
+    const xBar =
+      Integral.integrate(
+        expressionDistanceXBar,
+        0,
+        weightEndPoint - weightStartPoint
+      ) /
+        weightModule +
+      weightStartPoint;
+
     setWeights((prevstate) => [
       ...prevstate,
       {
@@ -180,132 +200,111 @@ export default function Home() {
   }
 
   /*Verifica se há o minimo de dados preenchidos para o calculo da carga distribuida */
-  function emptyWeightData(){
-    if(weightEndPoint == 0){
+  function emptyWeightData() {
+    if (weightEndPoint == 0) {
       return true;
-    }else if(coefficientAWeightFunction == 0 && coefficientBWeightFunction  == 0 && coefficientCWeightFunction == 0){
+    } else if (
+      coefficientAWeightFunction == 0 &&
+      coefficientBWeightFunction == 0 &&
+      coefficientCWeightFunction == 0
+    ) {
       return true;
-    }else{
+    } else {
       return false;
     }
   }
 
   /*Calcula reações */
-  function handleCalculateSupportReactions(){
-    if(supportType == "support1"){
-      
+  function handleCalculateSupportReactions() {
+    if (supportType == "support1") {
       var sumForcesByDistances = 0;
       var sumForces = 0;
 
-      forces.map(force =>{
-        sumForcesByDistances += force.value*force.distance
+      forces.map((force) => {
+        sumForcesByDistances += force.value * force.distance;
         sumForces += force.value;
-      })
+      });
 
       var sumMoments = 0;
-      moments.map(moment =>{
+      moments.map((moment) => {
         sumMoments += moment.value;
-      })
+      });
 
       var sumForcesModuleByXBar = 0;
       var sumForcesModule = 0;
 
-      weights.map(weight => {
-        sumForcesModuleByXBar += weight.forceModule * weight.forceModulePosition;
+      weights.map((weight) => {
+        sumForcesModuleByXBar +=
+          weight.forceModule * weight.forceModulePosition;
         sumForcesModule += weight.forceModule;
-      })
+      });
 
-      const By = (-(sumForcesByDistances + sumMoments + sumForcesModuleByXBar)/beamLength)
-      const Ay = (-(By + sumForces + sumForcesModule))
+      const By =
+        -(sumForcesByDistances + sumMoments + sumForcesModuleByXBar) /
+        beamLength;
+      const Ay = -(By + sumForces + sumForcesModule);
 
-
-      setSupportA({reactionForce:Ay})
-      setSupportB({reactionForce:By})
+      setSupportA({ reactionForce: Ay });
+      setSupportB({ reactionForce: By });
     }
-    loadChartData();
   }
 
   /* Ordena vetor de forças por posição*/
-  function handleOrderForcesByPosition(){
-    const aux = forces.sort(function(a, b): any{
-      if(a.distance < b.distance){
+  function handleOrderForcesByPosition() {
+    const aux = forces.sort(function (a, b): any {
+      if (a.distance < b.distance) {
         return -1;
-      
-      }else{
-        return true
+      } else {
+        return true;
       }
     });
 
-    setForces(aux)
+    setForces(aux);
   }
 
-  function loadChartData(){
-
-    const data1 = [
-      ["x", "y"],
-      [0, 4],
-      [1, 4],
-      [1, 2],
-      [2, 2],
-      [2, -2],
-      [3, -2],
-      [3, 1],
-      [4, 1],
-      [4, -5],
-      [5 ,-5],
-      [5, 0]
-    
+  function loadChartData() {
+    const allForces = [
+      { id: Math.random(), value: supportA.reactionForce, distance: 0 },
+      ...forces,
+      {
+        zid: Math.random(),
+        value: supportB.reactionForce,
+        distance: beamLength,
+      },
     ];
 
-    const allForces = [
-      {id: Math.random(), value:supportA.reactionForce, distance: 0},
-      ...forces,
-      {zid: Math.random(), value:supportB.reactionForce, distance: beamLength},
-    ]
-
-
-    const values = _.map(allForces, ( value, key ) =>[
-         allForces[key].distance,
-         allForces[key].value,
-    ])  
 
     var data = [];
 
     const newData = produce(data, (draft) => {
       var numeroAnterior = supportA.reactionForce;
-     
-      for (let i = 0; i < values.length; i++) {
-        // console.log("Numero anterior", numeroAnterior, "valor", values[i][1])
+
+      for (let i = 0; i < allForces.length; i++) {
         if (i == 0) {
-          draft.push(["xAxis", "yAxis"])
-          draft.push([0, numeroAnterior]);
-        }else{
-          
-          draft.push([values[i][0], numeroAnterior]);
-          draft.push([values[i][0], numeroAnterior + values[i][1]]);
-          numeroAnterior += values[i][1];
-          
+          draft.push(["xAxis", "yAxis"]);
+          draft.push([0, allForces[i].value]);
+        } else {
+          draft.push([allForces[i].distance, numeroAnterior]);
+          draft.push([allForces[i].distance, numeroAnterior + allForces[i].value]);
+          numeroAnterior += allForces[i].value;
         }
       }
-      
-     
     });
 
     console.log(newData);
 
-    setChartData(newData)
-    
-
-
+    setChartData(newData);
   }
 
   useEffect(() => {
-
+    handleCalculateSupportReactions();
     handleOrderForcesByPosition();
-  },[forces]);
+    loadChartData();
+    loadChartData();
+  });
 
   return (
-    <Flex direction="column" h="100vh" justify="center" px={20}>
+    <Flex direction="column" justify="center" px={20}>
       <Heading mt={8}> Trabalho de Mecânica dos Sólidos</Heading>
       <Divider mt={2} />
 
@@ -330,7 +329,7 @@ export default function Home() {
           />
         </Box>
 
-        <Flex direction="row" justify="flex-start"  gap={6}>
+        <Flex direction="row" justify="flex-start" gap={6}>
           <Box>
             <Stack spacing={10}>
               <InputNumber
@@ -348,7 +347,7 @@ export default function Home() {
               <Button
                 colorScheme="blue"
                 onClick={() => handleSaveForcesInVectorForce()}
-                isDisabled={forceValue==0}
+                isDisabled={forceValue == 0}
               >
                 Adicionar Força
               </Button>
@@ -386,7 +385,7 @@ export default function Home() {
               <Button
                 colorScheme="purple"
                 onClick={() => handleSaveMomentsInVectorMoment()}
-                isDisabled={momentValue==0}
+                isDisabled={momentValue == 0}
               >
                 Adicionar Momento
               </Button>
@@ -405,7 +404,7 @@ export default function Home() {
             </Stack>
           </Box>
 
-          <Box >
+          <Box>
             <Heading as="h2" size="sm" mb={3}>
               Equação que descreve a carga
             </Heading>
@@ -470,21 +469,25 @@ export default function Home() {
           </Box>
         </Flex>
       </Stack>
-      <Button 
-        variant="solid" 
-        colorScheme="blackAlpha" 
-        onClick={()=>handleCalculateSupportReactions()}
-        >
-          Calcular Força e momento resultantes
-      </Button>
-      <Text fontSize="2xl">Reação de apoio em Ay: {parseFloat(String(supportA.reactionForce)).toFixed(2)}</Text>
-      <Text fontSize="2xl">Reação de apoio em By: {parseFloat(String(supportB.reactionForce)).toFixed(2)}</Text>
+      <HStack spacing={12} mt={12}>
+        <Text fontSize="2xl">
+          Reação de apoio em Ay:{" "}
+          {parseFloat(String(supportA.reactionForce)).toFixed(2)}
+        </Text>
+        <Text fontSize="2xl">
+          Reação de apoio em By:{" "}
+          {parseFloat(String(supportB.reactionForce)).toFixed(2)}
+        </Text>
+      </HStack>
+      
+      <Divider />
       <Chart
         chartType="LineChart"
         width="100%"
         height="400px"
         data={chartData}
         options={options}
+
       />
     </Flex>
   );
