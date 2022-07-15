@@ -17,7 +17,7 @@ import { Slider } from "../components/Slider";
 import { TagForce } from "../components/Tag/TagForce";
 import { TagMoment } from "../components/Tag/TagMoment";
 import { TagWeight } from "../components/Tag/TagWeight";
-import { Tabs } from "../components/tabs"
+import { Tabs } from "../components/Tabs"
 
 import { useEffect, useState } from "react";
 
