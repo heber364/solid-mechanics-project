@@ -24,43 +24,9 @@ import { Chart } from "react-google-charts";
 import _ from "lodash";
 import produce from "immer";
 
-const beamWidthLimit = 100;
+import { beamWidthLimit , shearForceOptions, momentOptions} from '../utils/constants'
+import { ForceProps, MomentProps, WeightProps, SupportProps} from '../utils/interfaceProps'
 
-interface ForceProps {
-  id: number;
-  value: number;
-  distance: number;
-}
-
-interface MomentProps {
-  id: number;
-  value: number;
-  distance: number;
-}
-
-interface WeightProps {
-  id: number;
-  coefficientA: number;
-  coefficientB: number;
-  coefficientC: number;
-  start: number;
-  end: number;
-  forceModule: number;
-  forceModulePosition: number;
-}
-
-interface SupportProps {
-  reactionForce: number;
-}
-
-const options = {
-  title: "Gráfico de Força de Cisalhamento", titleTextStyle: { color: "#fff", fontSize: 22},
-  hAxis: { title: "Eixo x", titleTextStyle: { color: "#fff" } },
-  vAxis: { title: "Eixo y", titleTextStyle: { color: "#fff" } },
-  legend: { position: "bottom" },
-  backgroundColor: "transparent",
-  colors: ["#de3c9a"],
-};
 
 export default function Home() {
   /*Valores temporarios dos inputs*/
@@ -93,6 +59,8 @@ export default function Home() {
   const [weights, setWeights] = useState<WeightProps[]>([]);
 
   const [chartData, setChartData] = useState([]);
+  const [chartData2, setChartData2] = useState([]);
+
 
   /*Salva as forças em um vetor*/
   function handleSaveForcesInVectorForce() {
@@ -262,12 +230,13 @@ export default function Home() {
     setForces(aux);
   }
 
-  function loadChartData() {
+  /*Carrega os dados do gráfico de forças de cisalhamento */
+  function loadSheaForceGraphData() {
     const allForces = [
       { id: Math.random(), value: supportA.reactionForce, distance: 0 },
       ...forces,
       {
-        zid: Math.random(),
+        id: Math.random(),
         value: supportB.reactionForce,
         distance: beamLength,
       },
@@ -291,16 +260,48 @@ export default function Home() {
       }
     });
 
-    console.log(newData);
-
     setChartData(newData);
+  }
+
+  function loadMomentChartData(){
+    const allForces = [
+      { id: Math.random(), value: supportA.reactionForce, distance: 0 },
+      ...forces,
+      {
+        id: Math.random(),
+        value: supportB.reactionForce,
+        distance: beamLength,
+      },
+    ];
+
+
+    var data = [];
+
+    const newData = produce(data, (draft) => {
+
+      var pontoAterior = 0;
+
+      for (let i = 0; i < allForces.length; i++) {
+        if (i == 0) {
+          draft.push(["xAxis", "yAxis"]);
+          draft.push([0, 0]);
+        } else {
+          draft.push([allForces[i].distance, allForces[i].distance*allForces[i-1].value + pontoAterior]);
+          pontoAterior += allForces[i].distance*allForces[i-1].value;
+        }
+      }
+    });
+
+    setChartData2(newData)
   }
 
   useEffect(() => {
     handleCalculateSupportReactions();
     handleOrderForcesByPosition();
-    loadChartData();
-    loadChartData();
+    loadMomentChartData();
+    loadMomentChartData();
+    loadSheaForceGraphData();
+    loadSheaForceGraphData();
   });
 
   return (
@@ -486,7 +487,15 @@ export default function Home() {
         width="100%"
         height="400px"
         data={chartData}
-        options={options}
+        options={shearForceOptions}
+
+      />
+      <Chart
+        chartType="LineChart"
+        width="100%"
+        height="400px"
+        data={chartData2}
+        options={momentOptions}
 
       />
     </Flex>
