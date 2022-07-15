@@ -15,5 +15,5 @@ export const shearForceOptions = {
     vAxis: { title: "Eixo y", titleTextStyle: { color: "#fff" } },
     legend: { position: "bottom" },
     backgroundColor: "transparent",
-    colors: ["#de3c9a"],
+    colors: ["#6B46C1"],
   };

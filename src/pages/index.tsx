@@ -17,6 +17,7 @@ import { Slider } from "../components/Slider";
 import { TagForce } from "../components/Tag/TagForce";
 import { TagMoment } from "../components/Tag/TagMoment";
 import { TagWeight } from "../components/Tag/TagWeight";
+import { Tabs } from "../components/tabs"
 
 import { useEffect, useState } from "react";
 
@@ -24,9 +25,17 @@ import { Chart } from "react-google-charts";
 import _ from "lodash";
 import produce from "immer";
 
-import { beamWidthLimit , shearForceOptions, momentOptions} from '../utils/constants'
-import { ForceProps, MomentProps, WeightProps, SupportProps} from '../utils/interfaceProps'
-
+import {
+  beamWidthLimit,
+  shearForceOptions,
+  momentOptions,
+} from "../utils/constants";
+import {
+  ForceProps,
+  MomentProps,
+  WeightProps,
+  SupportProps,
+} from "../utils/interfaceProps";
 
 export default function Home() {
   /*Valores temporarios dos inputs*/
@@ -60,7 +69,6 @@ export default function Home() {
 
   const [chartData, setChartData] = useState([]);
   const [chartData2, setChartData2] = useState([]);
-
 
   /*Salva as forças em um vetor*/
   function handleSaveForcesInVectorForce() {
@@ -242,7 +250,6 @@ export default function Home() {
       },
     ];
 
-
     var data = [];
 
     const newData = produce(data, (draft) => {
@@ -254,7 +261,10 @@ export default function Home() {
           draft.push([0, allForces[i].value]);
         } else {
           draft.push([allForces[i].distance, numeroAnterior]);
-          draft.push([allForces[i].distance, numeroAnterior + allForces[i].value]);
+          draft.push([
+            allForces[i].distance,
+            numeroAnterior + allForces[i].value,
+          ]);
           numeroAnterior += allForces[i].value;
         }
       }
@@ -263,7 +273,7 @@ export default function Home() {
     setChartData(newData);
   }
 
-  function loadMomentChartData(){
+  function loadMomentChartData() {
     const allForces = [
       { id: Math.random(), value: supportA.reactionForce, distance: 0 },
       ...forces,
@@ -274,11 +284,9 @@ export default function Home() {
       },
     ];
 
-
     var data = [];
 
     const newData = produce(data, (draft) => {
-
       var pontoAterior = 0;
 
       for (let i = 0; i < allForces.length; i++) {
@@ -286,13 +294,16 @@ export default function Home() {
           draft.push(["xAxis", "yAxis"]);
           draft.push([0, 0]);
         } else {
-          draft.push([allForces[i].distance, allForces[i].distance*allForces[i-1].value + pontoAterior]);
-          pontoAterior += allForces[i].distance*allForces[i-1].value;
+          draft.push([
+            allForces[i].distance,
+            allForces[i].distance * allForces[i - 1].value + pontoAterior,
+          ]);
+          pontoAterior += allForces[i].distance * allForces[i - 1].value;
         }
       }
     });
 
-    setChartData2(newData)
+    setChartData2(newData);
   }
 
   useEffect(() => {
@@ -480,24 +491,9 @@ export default function Home() {
           {parseFloat(String(supportB.reactionForce)).toFixed(2)}
         </Text>
       </HStack>
-      
+
       <Divider />
-      <Chart
-        chartType="LineChart"
-        width="100%"
-        height="400px"
-        data={chartData}
-        options={shearForceOptions}
-
-      />
-      <Chart
-        chartType="LineChart"
-        width="100%"
-        height="400px"
-        data={chartData2}
-        options={momentOptions}
-
-      />
+      <Tabs data1={chartData} data2={chartData2} options1={shearForceOptions} options2={momentOptions}/>
     </Flex>
   );
 }
