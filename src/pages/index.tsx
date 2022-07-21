@@ -294,7 +294,7 @@ export default function Home() {
     var data = [];
 
     const newData = produce(data, (draft) => {
-      var forcasAnteriores = 0;
+      var forcasAnteriores = supportA.reactionForce;
       var pontoAnterior = 0;
 
       for (let i = 0; i < allForces.length; i++) {
@@ -305,10 +305,10 @@ export default function Home() {
 
           draft.push([
             allForces[i].distance,
-            (allForces[i].distance + allForces[i -1].distance) * (forcasAnteriores + allForces[i].value) + pontoAnterior,
+            (allForces[i].distance - allForces[i -1].distance) * (forcasAnteriores) + pontoAnterior,
           ]);
 
-          forcasAnteriores += allForces[i - 1].value + allForces[i].value;
+          forcasAnteriores += allForces[i].value;
           pontoAnterior += forcasAnteriores * (allForces[i].distance - allForces[i-1].distance)
         }
   
