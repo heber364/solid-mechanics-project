@@ -273,10 +273,18 @@ export default function Home() {
   }
 
   function loadMomentChartData() {
+
+
     const allForces = [
-      { id: Math.random(), value: supportA.reactionForce, distance: 0 },
+      { 
+        type: "force",
+        id: Math.random(), 
+        value: supportA.reactionForce, 
+        distance: 0 
+      },
       ...forces,
       {
+        type: "force",
         id: Math.random(),
         value: supportB.reactionForce,
         distance: beamLength,
@@ -286,19 +294,24 @@ export default function Home() {
     var data = [];
 
     const newData = produce(data, (draft) => {
-      var pontoAterior = 0;
+      var forcasAnteriores = 0;
+      var pontoAnterior = 0;
 
       for (let i = 0; i < allForces.length; i++) {
         if (i == 0) {
           draft.push(["xAxis", "yAxis"]);
           draft.push([0, 0]);
         } else {
+          
           draft.push([
             allForces[i].distance,
-            allForces[i].distance * allForces[i - 1].value + pontoAterior,
+            (allForces[i].distance + allForces[i -1].distance) * (forcasAnteriores) + pontoAnterior,
           ]);
-          pontoAterior += allForces[i].distance * allForces[i - 1].value;
+
+          forcasAnteriores += allForces[i - 1].value + allForces[i].value;
+          pontoAnterior += forcasAnteriores * (allForces[i].distance - allForces[i-1].distance)
         }
+  
       }
     });
 
