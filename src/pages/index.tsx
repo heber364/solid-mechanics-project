@@ -29,6 +29,7 @@ import {
   shearForceOptions,
   momentOptions,
 } from "../utils/constants";
+
 import {
   ForceProps,
   MomentProps,
@@ -62,7 +63,7 @@ export default function Home() {
   const [weightEndPoint, setWeightEndPoint] = useState(0);
 
   /*Vetores de forças, momentos e cargas*/
-  const [forces, setForces] = useState<ForceProps[]>([]);
+  const [forces, setForces] = useState<ForceProps[]>([{id: 1, distance: 1, value: -2}, {id: 2, distance: 2, value: -4}, {id: 3, distance: 3, value: 3},{id: 4, distance: 4, value: -6}]);
   const [moments, setMoments] = useState<MomentProps[]>([]);
   const [weights, setWeights] = useState<WeightProps[]>([]);
 
@@ -305,11 +306,11 @@ export default function Home() {
 
           draft.push([
             allForces[i].distance,
-            (allForces[i].distance - allForces[i -1].distance) * (forcasAnteriores) + pontoAnterior,
+            forcasAnteriores * (allForces[i].distance - allForces[i - 1].distance) + pontoAnterior,
           ]);
-
-          forcasAnteriores += allForces[i].value;
           pontoAnterior += forcasAnteriores * (allForces[i].distance - allForces[i-1].distance)
+          forcasAnteriores += allForces[i].value;
+          
         }
   
       }
