@@ -302,10 +302,10 @@ export default function Home() {
           draft.push(["xAxis", "yAxis"]);
           draft.push([0, 0]);
         } else {
-          
+
           draft.push([
             allForces[i].distance,
-            (allForces[i].distance + allForces[i -1].distance) * (forcasAnteriores) + pontoAnterior,
+            (allForces[i].distance + allForces[i -1].distance) * (forcasAnteriores + allForces[i].value) + pontoAnterior,
           ]);
 
           forcasAnteriores += allForces[i - 1].value + allForces[i].value;
