@@ -18,7 +18,7 @@ export function Tabs({data1, data2, options1, options2}: TabsProps) {
   return (
     <TabsChakra isFitted>
       <TabList>
-        <Tab _selected={{ bg: "pink.500" }}>Gráfico de Força Cisalhante</Tab>
+        <Tab _selected={{ bg: "pink.500" }} >Gráfico de Força Cisalhante</Tab>
         <Tab _selected={{ bg: "purple.500" }}>Gráfico de Momento</Tab>
       </TabList>
       <TabPanels>

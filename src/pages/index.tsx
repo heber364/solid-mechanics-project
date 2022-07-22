@@ -17,7 +17,7 @@ import { Slider } from "../components/Slider";
 import { TagForce } from "../components/Tag/TagForce";
 import { TagMoment } from "../components/Tag/TagMoment";
 import { TagWeight } from "../components/Tag/TagWeight";
-import { Tabs } from "../components/Tabs"
+import { Tabs } from "../components/Tabs";
 
 import { useEffect, useState } from "react";
 
@@ -31,15 +31,14 @@ import {
 } from "../utils/constants";
 
 import {
-  ForceProps,
-  MomentProps,
+  ForceMomentProps,
   WeightProps,
   SupportProps,
 } from "../utils/interfaceProps";
 
 export default function Home() {
   /*Valores temporarios dos inputs*/
-  const [beamLength, setBeamLength] = useState(0);
+  const [beamLength, setBeamLength] = useState(5);
 
   const [supportType, setSupportType] = useState("support1");
 
@@ -52,19 +51,22 @@ export default function Home() {
   const [momentValue, setMomentValue] = useState(0);
   const [momentDistance, setMomentDistance] = useState(0);
 
-  const [coefficientAWeightFunction, setCoefficientAWeightFunction] =
-    useState(0);
-  const [coefficientBWeightFunction, setCoefficientBWeightFunction] =
-    useState(0);
-  const [coefficientCWeightFunction, setCoefficientCWeightFunction] =
-    useState(0);
+  const [coefficientA, setCoefficientA] = useState(0);
+  const [coefficientB, setCoefficientB] = useState(0);
+  const [coefficientC, setCoefficientC] = useState(0);
 
   const [weightStartPoint, setWeightStartPoint] = useState(0);
   const [weightEndPoint, setWeightEndPoint] = useState(0);
 
   /*Vetores de forças, momentos e cargas*/
-  const [forces, setForces] = useState<ForceProps[]>([{id: 1, distance: 1, value: -2}, {id: 2, distance: 2, value: -4}, {id: 3, distance: 3, value: 3},{id: 4, distance: 4, value: -6}]);
-  const [moments, setMoments] = useState<MomentProps[]>([]);
+  const [forces, setForces] = useState<ForceMomentProps[]>([
+    { type: "force", id: 1, distance: 1, value: -2 },
+    { type: "force", id: 2, distance: 2, value: -4 },
+    { type: "force", id: 3, distance: 3, value: 3 },
+    { type: "force", id: 4, distance: 4, value: -6 },
+  ]);
+
+  const [moments, setMoments] = useState<ForceMomentProps[]>([]);
   const [weights, setWeights] = useState<WeightProps[]>([]);
 
   const [chartData, setChartData] = useState([]);
@@ -75,6 +77,7 @@ export default function Home() {
     setForces((prevstate) => [
       ...prevstate,
       {
+        type: "force",
         id: Math.random(),
         value: forceValue,
         distance: forceDistance,
@@ -94,6 +97,7 @@ export default function Home() {
     setMoments((prevstate) => [
       ...prevstate,
       {
+        type: "moment",
         id: Math.random(),
         value: momentValue,
         distance: momentDistance,
@@ -114,11 +118,7 @@ export default function Home() {
 
     /* funcao da carga distribuida */
     function expressionDistributedWeight(x) {
-      return (
-        coefficientAWeightFunction * x * x +
-        coefficientBWeightFunction * x +
-        coefficientCWeightFunction
-      );
+      return coefficientA * x * x + coefficientB * x + coefficientC;
     }
 
     /*Módulo da força de toda carga distribuida */
@@ -130,11 +130,7 @@ export default function Home() {
 
     /* funcao do X barra */
     function expressionDistanceXBar(x) {
-      return (
-        coefficientAWeightFunction * x * x * x +
-        coefficientBWeightFunction * x * x +
-        coefficientCWeightFunction * x
-      );
+      return coefficientA * x * x * x + coefficientB * x * x + coefficientC * x;
     }
 
     /*Posição do modulo da força resultante */
@@ -151,9 +147,9 @@ export default function Home() {
       ...prevstate,
       {
         id: Math.random(),
-        coefficientA: coefficientAWeightFunction,
-        coefficientB: coefficientBWeightFunction,
-        coefficientC: coefficientCWeightFunction,
+        coefficientA: coefficientA,
+        coefficientB: coefficientB,
+        coefficientC: coefficientC,
         start: weightStartPoint,
         end: weightEndPoint,
         forceModule: weightModule,
@@ -179,11 +175,7 @@ export default function Home() {
   function emptyWeightData() {
     if (weightEndPoint == 0) {
       return true;
-    } else if (
-      coefficientAWeightFunction == 0 &&
-      coefficientBWeightFunction == 0 &&
-      coefficientCWeightFunction == 0
-    ) {
+    } else if (coefficientA == 0 && coefficientB == 0 && coefficientC == 0) {
       return true;
     } else {
       return false;
@@ -274,16 +266,25 @@ export default function Home() {
   }
 
   function loadMomentChartData() {
+    var forcesAndMoments = [...forces, ...moments];
 
+    /* Ordena vetor de forças e momentos  */
+    var forcesAndMoments = forcesAndMoments.sort(function (a, b): any {
+      if (a.distance < b.distance) {
+        return -1;
+      } else {
+        return true;
+      }
+    });
 
-    const allForces = [
-      { 
+    var array = [
+      {
         type: "force",
-        id: Math.random(), 
-        value: supportA.reactionForce, 
-        distance: 0 
+        id: Math.random(),
+        value: supportA.reactionForce,
+        distance: 0,
       },
-      ...forces,
+      ...forcesAndMoments,
       {
         type: "force",
         id: Math.random(),
@@ -292,27 +293,48 @@ export default function Home() {
       },
     ];
 
+    console.log(array)
     var data = [];
 
     const newData = produce(data, (draft) => {
       var forcasAnteriores = supportA.reactionForce;
-      var pontoAnterior = 0;
+      var yAnterior = 0;
 
-      for (let i = 0; i < allForces.length; i++) {
+
+      for (let i = 0; i < array.length; i++) {
         if (i == 0) {
           draft.push(["xAxis", "yAxis"]);
           draft.push([0, 0]);
+
         } else {
 
-          draft.push([
-            allForces[i].distance,
-            forcasAnteriores * (allForces[i].distance - allForces[i - 1].distance) + pontoAnterior,
-          ]);
-          pontoAnterior += forcasAnteriores * (allForces[i].distance - allForces[i-1].distance)
-          forcasAnteriores += allForces[i].value;
-          
+          if(array[i].type == "moment"){
+            draft.push([
+              array[i].distance,
+              forcasAnteriores * (array[i].distance - array[i - 1].distance)  + yAnterior
+            ])
+
+            yAnterior = forcasAnteriores * (array[i].distance - array[i - 1].distance)  + yAnterior;
+
+            draft.push([
+              array[i].distance,
+              yAnterior + array[i].value
+            ])
+
+            yAnterior += array[i].value
+
+          }
+          else if (array[i].type == "force") {
+            draft.push([
+              array[i].distance,
+              yAnterior + forcasAnteriores * (array[i].distance - array[i -1].distance) ,
+            ]);
+
+            yAnterior += forcasAnteriores * (array[i].distance - array[i -1].distance);
+            forcasAnteriores += array[i].value;
+                     
+          }
         }
-  
       }
     });
 
@@ -321,12 +343,14 @@ export default function Home() {
 
   useEffect(() => {
     handleCalculateSupportReactions();
+    handleCalculateSupportReactions();
+    loadMomentChartData();
+    loadMomentChartData();
+    loadSheaForceGraphData();
+    loadSheaForceGraphData();
     handleOrderForcesByPosition();
-    loadMomentChartData();
-    loadMomentChartData();
-    loadSheaForceGraphData();
-    loadSheaForceGraphData();
-  });
+    handleOrderForcesByPosition();
+  },[forceValue]);
 
   return (
     <Flex direction="column" justify="center" px={20}>
@@ -440,21 +464,21 @@ export default function Home() {
                   w={32}
                   name="chargeAValue"
                   pHolder="A(x^2)"
-                  onChange={(a) => setCoefficientAWeightFunction(Number(a))}
+                  onChange={(a) => setCoefficientA(Number(a))}
                 />
                 <InputNumber
                   focusBorderColor="pink.500"
                   w={32}
                   name="chargeBValue"
                   pHolder="B(x)"
-                  onChange={(b) => setCoefficientBWeightFunction(Number(b))}
+                  onChange={(b) => setCoefficientB(Number(b))}
                 />
                 <InputNumber
                   focusBorderColor="pink.500"
                   w={32}
                   name="chargeCValue"
                   pHolder="C"
-                  onChange={(c) => setCoefficientCWeightFunction(Number(c))}
+                  onChange={(c) => setCoefficientC(Number(c))}
                 />
               </HStack>
 
@@ -506,7 +530,12 @@ export default function Home() {
       </HStack>
 
       <Divider />
-      <Tabs data1={chartData} data2={chartData2} options1={shearForceOptions} options2={momentOptions}/>
+      <Tabs
+        data1={chartData}
+        data2={chartData2}
+        options1={shearForceOptions}
+        options2={momentOptions}
+      />
     </Flex>
   );
 }

@@ -1,10 +1,6 @@
-export interface ForceProps {
-    id: number;
-    value: number;
-    distance: number;
-  }
   
-  export interface MomentProps {
+  export interface ForceMomentProps {
+    type: string;
     id: number;
     value: number;
     distance: number;
