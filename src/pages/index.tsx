@@ -293,7 +293,6 @@ export default function Home() {
       },
     ];
 
-    console.log(array)
     var data = [];
 
     const newData = produce(data, (draft) => {
@@ -341,16 +340,21 @@ export default function Home() {
     setChartData2(newData);
   }
 
+
+
   useEffect(() => {
     handleCalculateSupportReactions();
     handleCalculateSupportReactions();
-    loadMomentChartData();
-    loadMomentChartData();
-    loadSheaForceGraphData();
-    loadSheaForceGraphData();
+
     handleOrderForcesByPosition();
     handleOrderForcesByPosition();
-  },[forceValue]);
+
+    loadMomentChartData();
+    loadMomentChartData();
+
+    loadSheaForceGraphData();
+    loadSheaForceGraphData();
+  },);
 
   return (
     <Flex direction="column" justify="center" px={20}>
