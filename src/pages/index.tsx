@@ -384,7 +384,7 @@ export default function Home() {
     var data = [];
 
     const newData = produce(data, (draft) => {
-      var forcasAnteriores = supportA.reactionForce;
+      var forcasAnteriores = -supportA.reactionForce;
       var yAnterior = 0;
 
       for (let i = 0; i < array.length; i++) {
