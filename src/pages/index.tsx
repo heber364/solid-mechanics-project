@@ -17,7 +17,6 @@ import { Slider } from "../components/Slider";
 import { TagForce } from "../components/Tag/TagForce";
 import { TagMoment } from "../components/Tag/TagMoment";
 import { TagWeight } from "../components/Tag/TagWeight";
-import { Tabs } from "../components/Tabs";
 
 import { useEffect, useState } from "react";
 
@@ -36,6 +35,7 @@ import {
   WeightProps,
   SupportProps,
 } from "../utils/interfaceProps";
+import Chart from "react-google-charts";
 
 export default function Home() {
   /*Valores temporarios dos inputs*/
@@ -154,7 +154,7 @@ export default function Home() {
         coefficientC: coefficientC,
         distance: weightStartPoint,
         length: weightEndPoint - weightStartPoint,
-        forceModule: weightModule,
+        forceModule: -weightModule,
         forceModulePosition: xBar,
       },
     ]);
@@ -286,7 +286,7 @@ export default function Home() {
             if (allForces[i].distance != allForces[i + 1].distance) {
               /*Função da carga distribuida */
               let expressionDistributedWeight = function (x): number {
-                return (
+                return -(
                   allForces[i].coefficientA * x * x +
                   allForces[i].coefficientB * x +
                   allForces[i].coefficientC
@@ -388,11 +388,12 @@ export default function Home() {
       },
     ];
 
+    console.log(array);
 
     var data = [];
 
     const newData = produce(data, (draft) => {
-      var forcasAnteriores = -supportA.reactionForce;
+      var forcasAnteriores = supportA.reactionForce;
       var yAnterior = 0;
 
       for (let i = 0; i < array.length; i++) {
@@ -401,24 +402,15 @@ export default function Home() {
           draft.push([0, 0]);
         } else {
           if (array[i].type == "moment") {
-            draft.push([
-              array[i].distance,
-              forcasAnteriores * (array[i].distance - array[i - 1].distance) +
-                yAnterior,
-            ]);
-
-            yAnterior =
-              forcasAnteriores * (array[i].distance - array[i - 1].distance) +
-              yAnterior;
-
-            draft.push([array[i].distance, yAnterior + array[i].value]);
-
-            yAnterior += array[i].value;
+            draft.push([array[i].distance, -yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance)])
+            draft.push([array[i].distance, -yAnterior + forcasAnteriores*(array[i].distance - array[i-1].distance) + array[i].value]);
+            
+            yAnterior -= array[i].value;
           } else if (array[i].type == "force") {
             draft.push([
               array[i].distance,
-              yAnterior +
-                forcasAnteriores * (array[i].distance - array[i - 1].distance),
+              -(yAnterior +
+                forcasAnteriores * (array[i].distance - array[i - 1].distance)),
             ]);
 
             yAnterior +=
@@ -428,7 +420,7 @@ export default function Home() {
           else if(array[i].type == "weight"){
             /*Função da carga distribuida */
             let expressionDistributedWeight = function(x): number {
-              return array[i].coefficientA * x * x + array[i].coefficientB * x + array[i].coefficientC
+              return array[i].coefficientA * x * x*x + array[i].coefficientB * x * x + array[i].coefficientC * x
             };
             
             /*Plota vários pontos da carga distribuida */
@@ -440,6 +432,7 @@ export default function Home() {
             yAnterior +=  Integral.integrate(expressionDistributedWeight, 0, array[i].length);
           }
         }
+      console.log(yAnterior)
       }
     });
 
@@ -458,7 +451,7 @@ export default function Home() {
 
     loadSheaForceGraphData();
     loadSheaForceGraphData();
-  },);
+  }, [supportType]);
 
   return (
     <Flex direction="column" justify="center" px={20}>
@@ -637,12 +630,22 @@ export default function Home() {
       </HStack>
 
       <Divider />
-      <Tabs
-        data1={chartData}
-        data2={chartData2}
-        options1={shearForceOptions}
-        options2={momentOptions}
+      <Chart
+        chartType="LineChart"
+        width="100%"
+        height="400px"
+        data={chartData}
+        options={shearForceOptions}
       />
+
+      <Chart
+        chartType="LineChart"
+        width="100%"
+        height="400px"
+        data={chartData2}
+        options={momentOptions}
+      />
+     
     </Flex>
   );
 }
