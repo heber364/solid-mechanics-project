@@ -46,7 +46,7 @@ export function RangeSlider({
         min={0}
         max={beamLength}
         step={0.5}
-        defaultValue={[0.20 * beamLength, 0.80 * beamLength]}
+        defaultValue={[0, 0]}
         onChange={(val) => onRangeSliderValueChange(val)}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
