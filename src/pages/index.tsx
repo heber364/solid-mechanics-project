@@ -402,19 +402,22 @@ export default function Home() {
           draft.push([0, 0]);
         } else {
           if (array[i].type == "moment") {
-            draft.push([array[i].distance, -yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance)])
-            draft.push([array[i].distance, -yAnterior + forcasAnteriores*(array[i].distance - array[i-1].distance) + array[i].value]);
+            draft.push([array[i].distance, yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance)])
             
-            yAnterior -= array[i].value;
+            console.log(yAnterior)
+
+            draft.push([array[i].distance, yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance) + array[i].value]);
+            
+            yAnterior += array[i].value - forcasAnteriores * (array[i].distance - array[i-1].distance);
+
           } else if (array[i].type == "force") {
             draft.push([
               array[i].distance,
-              -(yAnterior +
-                forcasAnteriores * (array[i].distance - array[i - 1].distance)),
+              yAnterior -
+                forcasAnteriores * (array[i].distance - array[i - 1].distance),
             ]);
 
-            yAnterior +=
-              forcasAnteriores * (array[i].distance - array[i - 1].distance);
+            yAnterior += - forcasAnteriores * (array[i].distance - array[i - 1].distance);
             forcasAnteriores += array[i].value;
           }
           else if(array[i].type == "weight"){
@@ -432,7 +435,7 @@ export default function Home() {
             yAnterior +=  Integral.integrate(expressionDistributedWeight, 0, array[i].length);
           }
         }
-      console.log(yAnterior)
+      // console.log(yAnterior)
       }
     });
 
