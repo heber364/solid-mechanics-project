@@ -17,3 +17,5 @@ export const shearForceOptions = {
     backgroundColor: "transparent",
     colors: ["#6B46C1"],
   };
+
+export const Integral = require("sm-integral");

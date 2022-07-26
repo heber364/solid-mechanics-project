@@ -28,6 +28,7 @@ import {
   beamWidthLimit,
   shearForceOptions,
   momentOptions,
+  Integral
 } from "../utils/constants";
 
 import {
@@ -233,7 +234,7 @@ export default function Home() {
       }
     });
 
-    const allForces = [
+    const array = [
       { 
         type: "force",
         id: Math.random(), 
@@ -258,41 +259,40 @@ export default function Home() {
       },
     ];
 
-    const Integral = require("sm-integral");
 
     var data = [];
 
     const newData = produce(data, (draft) => {
-      var numeroAnterior = supportA.reactionForce;
+      var yAnterior = supportA.reactionForce;
 
-      for (let i = 0; i < allForces.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         if (i == 0) {
           draft.push(["xAxis", "yAxis"]);
-          draft.push([0, allForces[i].value]);
+          draft.push([0, array[i].value]);
         } else {
-            if(allForces[i].type == "weight"){
+            if(array[i].type == "weight"){
              
               /*Função da carga distribuida */
               let expressionDistributedWeight = function(x): number {
-                return allForces[i].coefficientA * x * x + allForces[i].coefficientB * x + allForces[i].coefficientC
+                return array[i].coefficientA * x * x + array[i].coefficientB * x + array[i].coefficientC
               };
               
               /*Plota vários pontos da carga distribuida */
-              for (let j = 0; j < allForces[i].length; j += 0.1) {
-                draft.push([allForces[i].distance + j, numeroAnterior + Integral.integrate(expressionDistributedWeight, 0, j)])
+              for (let j = 0; j < array[i].length; j += 0.1) {
+                draft.push([array[i].distance + j, yAnterior + Integral.integrate(expressionDistributedWeight, 0, j)])
                 
               }
 
-              numeroAnterior +=  Integral.integrate(expressionDistributedWeight, 0, allForces[i].length);
+              yAnterior +=  Integral.integrate(expressionDistributedWeight, 0, array[i].length);
 
             }else{
-              draft.push([allForces[i].distance, numeroAnterior]);
+              draft.push([array[i].distance, yAnterior]);
           
               draft.push([
-                allForces[i].distance,
-                numeroAnterior + allForces[i].value,
+                array[i].distance,
+                yAnterior + array[i].value,
               ]);
-              numeroAnterior += allForces[i].value;
+              yAnterior += array[i].value;
             }
           
 
@@ -304,7 +304,8 @@ export default function Home() {
   }
 
   function loadMomentChartData() {
-    var forcesAndMoments = [...forces, ...moments];
+    var forcesAndMoments = [...forces, ...moments, ...weights];
+
 
     /* Ordena vetor de forças e momentos  */
     var forcesAndMoments = forcesAndMoments.sort(function (a, b): any {
@@ -330,6 +331,7 @@ export default function Home() {
         distance: beamLength,
       },
     ];
+
 
     var data = [];
 
@@ -371,6 +373,20 @@ export default function Home() {
             forcasAnteriores += array[i].value;
                      
           }
+          else if(array[i].type == "weight"){
+            /*Função da carga distribuida */
+            let expressionDistributedWeight = function(x): number {
+              return array[i].coefficientA * x * x + array[i].coefficientB * x + array[i].coefficientC
+            };
+            
+            /*Plota vários pontos da carga distribuida */
+            for (let j = 0; j < array[i].length; j += 0.1) {
+              draft.push([array[i].distance + j, yAnterior + Integral.integrate(expressionDistributedWeight, 0, j)])
+              
+            }
+
+            yAnterior +=  Integral.integrate(expressionDistributedWeight, 0, array[i].length);
+          }
         }
       }
     });
@@ -391,7 +407,7 @@ export default function Home() {
 
     loadSheaForceGraphData();
     loadSheaForceGraphData();
-  });
+  },);
 
   return (
     <Flex direction="column" justify="center" px={20}>
