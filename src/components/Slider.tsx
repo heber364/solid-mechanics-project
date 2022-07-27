@@ -38,7 +38,7 @@ export function Slider({ name, label, beamLength, sliderValue, onSliderValueChan
         defaultValue={0}
         min={0}
         max={beamLength}
-        step={0.5}
+        step={0.1}
         colorScheme="blue"
         onChange={(val) => onSliderValueChange(val)}
         

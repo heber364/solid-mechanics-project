@@ -45,7 +45,7 @@ export function RangeSlider({
         aria-label={["min", "max"]}
         min={0}
         max={beamLength}
-        step={0.5}
+        step={0.1}
         defaultValue={[0, 0]}
         onChange={(val) => onRangeSliderValueChange(val)}
         onMouseEnter={() => setShowTooltip(true)}

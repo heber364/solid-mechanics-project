@@ -502,7 +502,7 @@ export default function Home() {
             <Stack spacing={10}>
               <InputNumber
                 name="strengthValue"
-                label="Valor da força"
+                label="Valor da força ( + pra cima )"
                 onChange={(value) => setForceValue(Number(value))}
               />
               <Slider
@@ -539,7 +539,7 @@ export default function Home() {
               <InputNumber
                 focusBorderColor="purple.500"
                 name="momentValue"
-                label="Momento"
+                label="Momento ( + anti-horário )"
                 onChange={(value) => setMomentValue(Number(value))}
               />
               <Slider
@@ -555,7 +555,7 @@ export default function Home() {
                 onClick={() => handleSaveMomentsInVectorMoment()}
                 isDisabled={momentValue == 0}
               >
-                Adicionar Momento
+                Adicionar Momento 
               </Button>
               <Stack>
                 {moments.map((moment) => (
@@ -574,7 +574,7 @@ export default function Home() {
 
           <Box>
             <Heading as="h2" size="sm" mb={3}>
-              Equação que descreve a carga
+              Equação que descreve a carga ( + pra cima )
             </Heading>
             <Stack spacing={10}>
               <HStack spacing={6}>
