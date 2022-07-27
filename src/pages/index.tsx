@@ -39,7 +39,7 @@ import Chart from "react-google-charts";
 
 export default function Home() {
   /*Valores temporarios dos inputs*/
-  const [beamLength, setBeamLength] = useState(5);
+  const [beamLength, setBeamLength] = useState(20);
 
   const [supportType, setSupportType] = useState("support1");
 
@@ -61,14 +61,19 @@ export default function Home() {
 
   /*Vetores de forças, momentos e cargas*/
   const [forces, setForces] = useState<ForceMomentProps[]>([
-    { type: "force", id: 1, distance: 1, value: -2 },
-    { type: "force", id: 2, distance: 2, value: -4 },
-    { type: "force", id: 3, distance: 3, value: 3 },
-    { type: "force", id: 4, distance: 4, value: -6 },
+    // { type: "force", id: 1, distance: 1, value: -2 },
+    // { type: "force", id: 2, distance: 2, value: -4 },
+    // { type: "force", id: 3, distance: 3, value: 3 },
+    // { type: "force", id: 4, distance: 4, value: -6 },
+    {type: "force", id: 1, distance:10, value: -600 }
   ]);
 
-  const [moments, setMoments] = useState<ForceMomentProps[]>([]);
-  const [weights, setWeights] = useState<WeightProps[]>([]);
+  const [moments, setMoments] = useState<ForceMomentProps[]>([
+    { type: "moment", id: 1, distance: 15, value: -4000}
+  ]);
+  const [weights, setWeights] = useState<WeightProps[]>([
+    // { type: "weight", id: 3, coefficientA: 0, coefficientB: 0, coefficientC: 5, distance: 1, length: 1, forceModule: 5, forceModulePosition: 3.5 }
+  ]);
 
   const [chartData, setChartData] = useState([]);
   const [chartData2, setChartData2] = useState([]);
@@ -402,40 +407,42 @@ export default function Home() {
           draft.push([0, 0]);
         } else {
           if (array[i].type == "moment") {
-            draft.push([array[i].distance, yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance)])
+            draft.push([array[i].distance, yAnterior + forcasAnteriores*(array[i].distance - array[i-1].distance)])
             
-            console.log(yAnterior)
-
-            draft.push([array[i].distance, yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance) + array[i].value]);
+            draft.push([array[i].distance, yAnterior + forcasAnteriores*(array[i].distance - array[i-1].distance) - array[i].value]);
             
-            yAnterior += array[i].value - forcasAnteriores * (array[i].distance - array[i-1].distance);
+            yAnterior -= array[i].value - forcasAnteriores * (array[i].distance - array[i-1].distance);
 
           } else if (array[i].type == "force") {
             draft.push([
               array[i].distance,
-              yAnterior -
-                forcasAnteriores * (array[i].distance - array[i - 1].distance),
+              yAnterior + forcasAnteriores * (array[i].distance - array[i - 1].distance),
             ]);
 
-            yAnterior += - forcasAnteriores * (array[i].distance - array[i - 1].distance);
+            yAnterior += forcasAnteriores * (array[i].distance - array[i - 1].distance);
             forcasAnteriores += array[i].value;
           }
           else if(array[i].type == "weight"){
-            /*Função da carga distribuida */
-            let expressionDistributedWeight = function(x): number {
-              return array[i].coefficientA * x * x*x + array[i].coefficientB * x * x + array[i].coefficientC * x
+            draft.push([array[i].distance, yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance)])
+
+            yAnterior += - forcasAnteriores*(array[i].distance - array[i-1].distance);
+
+            let expressionShearForce = function(x): number {
+              return (((1/3) * array[i].coefficientA * x * x * x) + ((1/2) *array[i].coefficientB * x * x) +( array[i].coefficientC * x))
             };
+
+
             
             /*Plota vários pontos da carga distribuida */
             for (let j = 0; j < array[i].length; j += 0.1) {
-              draft.push([array[i].distance + j, yAnterior + Integral.integrate(expressionDistributedWeight, 0, j)])
+              draft.push([array[i].distance + j, yAnterior + Integral.integrate(expressionShearForce, 0, j)])
               
             }
 
-            yAnterior +=  Integral.integrate(expressionDistributedWeight, 0, array[i].length);
+            yAnterior -=  Integral.integrate(expressionShearForce, 0, array[i].length);
           }
         }
-      // console.log(yAnterior)
+
       }
     });
 
@@ -454,7 +461,7 @@ export default function Home() {
 
     loadSheaForceGraphData();
     loadSheaForceGraphData();
-  }, [supportType]);
+  });
 
   return (
     <Flex direction="column" justify="center" px={20}>
