@@ -27,4 +27,5 @@
   
   export interface SupportProps {
     reactionForce: number;
+    reactionMoment: number;
   }

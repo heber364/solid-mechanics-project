@@ -39,12 +39,12 @@ import Chart from "react-google-charts";
 
 export default function Home() {
   /*Valores temporarios dos inputs*/
-  const [beamLength, setBeamLength] = useState(20);
+  const [beamLength, setBeamLength] = useState(0);
 
-  const [supportType, setSupportType] = useState("support1");
+  const [supportType, setSupportType] = useState("support2");
 
-  const [supportA, setSupportA] = useState<SupportProps>({ reactionForce: 0 });
-  const [supportB, setSupportB] = useState<SupportProps>({ reactionForce: 0 });
+  const [supportA, setSupportA] = useState<SupportProps>({ reactionForce: 0, reactionMoment: 0 });
+  const [supportB, setSupportB] = useState<SupportProps>({ reactionForce: 0, reactionMoment: 0 });
 
   const [forceValue, setForceValue] = useState(0);
   const [forceDistance, setForceDistance] = useState(0);
@@ -60,20 +60,10 @@ export default function Home() {
   const [weightEndPoint, setWeightEndPoint] = useState(0);
 
   /*Vetores de forças, momentos e cargas*/
-  const [forces, setForces] = useState<ForceMomentProps[]>([
-    // { type: "force", id: 1, distance: 1, value: -2 },
-    // { type: "force", id: 2, distance: 2, value: -4 },
-    // { type: "force", id: 3, distance: 3, value: 3 },
-    // { type: "force", id: 4, distance: 4, value: -6 },
-    {type: "force", id: 1, distance:10, value: -600 }
-  ]);
+  const [forces, setForces] = useState<ForceMomentProps[]>([]);
 
-  const [moments, setMoments] = useState<ForceMomentProps[]>([
-    { type: "moment", id: 1, distance: 15, value: -4000}
-  ]);
-  const [weights, setWeights] = useState<WeightProps[]>([
-    // { type: "weight", id: 3, coefficientA: 0, coefficientB: 0, coefficientC: 5, distance: 1, length: 1, forceModule: 5, forceModulePosition: 3.5 }
-  ]);
+  const [moments, setMoments] = useState<ForceMomentProps[]>([]);
+  const [weights, setWeights] = useState<WeightProps[]>([]);
 
   const [chartData, setChartData] = useState([]);
   const [chartData2, setChartData2] = useState([]);
@@ -191,8 +181,8 @@ export default function Home() {
 
   /*Calcula reações */
   function handleCalculateSupportReactions() {
-    if (supportType == "support1") {
-      var sumForcesByDistances = 0;
+
+    var sumForcesByDistances = 0;
       var sumForces = 0;
 
       forces.map((force) => {
@@ -205,6 +195,8 @@ export default function Home() {
         sumMoments += moment.value;
       });
 
+      console.log(sumMoments);
+
       var sumForcesModuleByXBar = 0;
       var sumForcesModule = 0;
 
@@ -214,14 +206,27 @@ export default function Home() {
         sumForcesModule += weight.forceModule;
       });
 
-      const By =
+
+    if (supportType == "support1") {
+      
+      var By =
         -(sumForcesByDistances + sumMoments + sumForcesModuleByXBar) /
         beamLength;
-      const Ay = -(By + sumForces + sumForcesModule);
+      var Ay = -(By + sumForces + sumForcesModule);
 
-      setSupportA({ reactionForce: Ay });
-      setSupportB({ reactionForce: By });
+      var M1 = 0;
+
+
+    }else if(supportType == "support2"){
+      var By = 0;
+      var Ay = -(By + sumForces + sumForcesModule);
+
+      var M1 = (sumMoments + sumForcesByDistances);
+      
     }
+
+    setSupportA({ reactionForce: Ay, reactionMoment: M1});
+    setSupportB({ reactionForce: By, reactionMoment: 0});
   }
 
   /* Ordena vetor de forças por posição*/
@@ -399,12 +404,17 @@ export default function Home() {
 
     const newData = produce(data, (draft) => {
       var forcasAnteriores = supportA.reactionForce;
+      
       var yAnterior = 0;
+
+      if(supportType=="support2"){
+        var yAnterior = supportA.reactionMoment;
+      }
 
       for (let i = 0; i < array.length; i++) {
         if (i == 0) {
           draft.push(["xAxis", "yAxis"]);
-          draft.push([0, 0]);
+          draft.push([0, yAnterior]);
         } else {
           if (array[i].type == "moment") {
             draft.push([array[i].distance, yAnterior + forcasAnteriores*(array[i].distance - array[i-1].distance)])
@@ -423,19 +433,18 @@ export default function Home() {
             forcasAnteriores += array[i].value;
           }
           else if(array[i].type == "weight"){
-            draft.push([array[i].distance, yAnterior - forcasAnteriores*(array[i].distance - array[i-1].distance)])
 
-            yAnterior += - forcasAnteriores*(array[i].distance - array[i-1].distance);
+            draft.push([array[i].distance, yAnterior + forcasAnteriores*(array[i].distance - array[i-1].distance)])
+
+            yAnterior += + forcasAnteriores*(array[i].distance - array[i-1].distance);
 
             let expressionShearForce = function(x): number {
               return (((1/3) * array[i].coefficientA * x * x * x) + ((1/2) *array[i].coefficientB * x * x) +( array[i].coefficientC * x))
             };
 
-
-            
             /*Plota vários pontos da carga distribuida */
-            for (let j = 0; j < array[i].length; j += 0.1) {
-              draft.push([array[i].distance + j, yAnterior + Integral.integrate(expressionShearForce, 0, j)])
+            for (let j = array[i].distance ; j < array[i].length + array[i].distance; j += 0.1) {
+              draft.push([ j , Integral.integrate(expressionShearForce, 0, j) ])
               
             }
 
@@ -475,8 +484,8 @@ export default function Home() {
           defaultValue="support1"
           onChange={(support) => setSupportType(support)}
         >
-          <Radio value="support1">Apoio simples</Radio>
-          <Radio value="support2">Engaste</Radio>
+          <Radio value="support1">Apoio simples - Apoio simples</Radio>
+          <Radio value="support2">Engaste - livre</Radio>
         </RadioGroup>
         <Box w={800}>
           <Slider
@@ -630,12 +639,10 @@ export default function Home() {
       </Stack>
       <HStack spacing={12} mt={12}>
         <Text fontSize="2xl">
-          Reação de apoio em Ay:{" "}
-          {parseFloat(String(supportA.reactionForce)).toFixed(2)}
+          Reação de apoio em A: Ay:{parseFloat(String(supportA.reactionForce)).toFixed(2)}N MA: {parseFloat(String(supportA.reactionMoment)).toFixed(2)}
         </Text>
         <Text fontSize="2xl">
-          Reação de apoio em By:{" "}
-          {parseFloat(String(supportB.reactionForce)).toFixed(2)}
+          Reação de apoio em B: By: {parseFloat(String(supportB.reactionForce)).toFixed(2)}N
         </Text>
       </HStack>
 
