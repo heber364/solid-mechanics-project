@@ -41,9 +41,9 @@ export default function Home() {
   /*Valores temporarios dos inputs*/
 
   /*Etapa 1*/
-  const [beamLength, setBeamLength] = useState(6);
+  const [beamLength, setBeamLength] = useState(14);
 
-  const [supportType, setSupportType] = useState("support1");
+  const [supportType, setSupportType] = useState("support2");
 
   const [supportA, setSupportA] = useState<SupportProps>({
     reactionForce: 0,
@@ -69,8 +69,8 @@ export default function Home() {
 
   /*Vetores de forças, momentos e cargas*/
   const [forces, setForces] = useState<ForceMomentProps[]>([
-    { id: 1, type: "force", distance: 1, value: -2 },
-    { id: 2, type: "force", distance: 2, value: -4 },
+    { id: 1, type: "force", distance: 3, value: -10 },
+    { id: 2, type: "force", distance: 13, value: -15 },
   ]);
 
   const [moments, setMoments] = useState<ForceMomentProps[]>([]);
@@ -78,13 +78,13 @@ export default function Home() {
     {
       id: 3,
       type: "weight",
-      distance: 3,
-      length: 2,
+      distance: 6,
+      length: 6,
       coefficientA: 0,
-      coefficientB: 0,
-      coefficientC: 5,
-      forceModule: -10,
-      forceModulePosition: 4,
+      coefficientB: -1,
+      coefficientC: 6,
+      forceModule: -18,
+      forceModulePosition: 8,
     },
 
   ]);
@@ -310,6 +310,7 @@ export default function Home() {
             /* Se a próxima força não estiver no mesmo lugar do inico da carga */
             if (allForces[i].distance != allForces[i + 1].distance) {
               /*Função da carga distribuida */
+
               let expressionDistributedWeight = function (x): number {
                 return -(
                   allForces[i].coefficientA * x * x +
@@ -327,6 +328,7 @@ export default function Home() {
                     Integral.integrate(expressionDistributedWeight, 0, j),
                 ]);
               }
+
               yAnterior += Integral.integrate(
                 expressionDistributedWeight,
                 0,
@@ -393,7 +395,6 @@ export default function Home() {
         return true;
       }
     });
-
     var array = [
       {
         type: "force",
@@ -410,7 +411,19 @@ export default function Home() {
       },
     ];
 
-    console.log(array);
+    if(supportType=="support2"){
+      var array = [
+        {
+          type: "force",
+          id: Math.random(),
+          value: supportA.reactionForce,
+          distance: 0,
+        },
+        ...forcesAndMoments
+      ];
+    }
+    
+    
 
     var data = [];
 
@@ -446,15 +459,26 @@ export default function Home() {
               array[i].value -
               forcasAnteriores * (array[i].distance - array[i - 1].distance);
           } else if (array[i].type == "force") {
-            draft.push([
-              array[i].distance,
-              yAnterior +
-                forcasAnteriores * (array[i].distance - array[i - 1].distance),
-            ]);
 
-            yAnterior +=
-              forcasAnteriores * (array[i].distance - array[i - 1].distance);
-            forcasAnteriores += array[i].value;
+            if(array[i-1].type == "weight"){
+              
+              draft.push([
+                array[i].distance,
+                yAnterior - array[i].value,
+              ]);
+              forcasAnteriores = yAnterior - array[i].value;
+
+            }else{
+              draft.push([
+                array[i].distance,
+                yAnterior +  forcasAnteriores * (array[i].distance - array[i - 1].distance),
+              ]);
+  
+              yAnterior += forcasAnteriores * (array[i].distance - array[i - 1].distance);
+  
+              forcasAnteriores += array[i].value;
+            }
+
           } else if (array[i].type == "weight") {
             draft.push([
               array[i].distance,
@@ -462,8 +486,7 @@ export default function Home() {
                 forcasAnteriores * (array[i].distance - array[i - 1].distance),
             ]);
 
-            yAnterior +=
-              +forcasAnteriores * (array[i].distance - array[i - 1].distance);
+            yAnterior += forcasAnteriores * (array[i].distance - array[i - 1].distance);
 
             let expressionShearForce = function (x): number {
               return (
@@ -474,19 +497,14 @@ export default function Home() {
             };
 
             /*Plota vários pontos da carga distribuida */
-            for (
-              let j = array[i].distance;
-              j < array[i].length + array[i].distance;
-              j += 0.1
-            ) {
-              draft.push([j, Integral.integrate(expressionShearForce, 0, j)]);
+            for (let j = 0; j <= array[i].length ; j += 0.1) {
+              draft.push([array[i].distance + j, yAnterior + (forcasAnteriores * j) - Integral.integrate(expressionShearForce, 0, j)]);
             }
 
-            yAnterior -= Integral.integrate(
-              expressionShearForce,
-              0,
-              array[i].length
-            );
+            yAnterior += -Integral.integrate(expressionShearForce,0,array[i].length) + forcasAnteriores * array[i].length;
+
+            console.log(yAnterior)
+
           }
         }
       }
