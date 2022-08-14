@@ -395,6 +395,7 @@ export default function Home() {
         return true;
       }
     });
+
     var array = [
       {
         type: "force",
@@ -423,8 +424,6 @@ export default function Home() {
       ];
     }
     
-    
-
     var data = [];
 
     const newData = produce(data, (draft) => {
@@ -442,24 +441,27 @@ export default function Home() {
           draft.push([0, yAnterior]);
         } else {
           if (array[i].type == "moment") {
-            draft.push([
-              array[i].distance,
-              yAnterior +
-                forcasAnteriores * (array[i].distance - array[i - 1].distance),
-            ]);
 
-            draft.push([
-              array[i].distance,
-              yAnterior +
-                forcasAnteriores * (array[i].distance - array[i - 1].distance) -
-                array[i].value,
-            ]);
+              draft.push([
+                array[i].distance,
+                yAnterior +
+                  forcasAnteriores * (array[i].distance - array[i - 1].distance) ,
+              ]);
+  
+              draft.push([
+                array[i].distance,
+                yAnterior +
+                  forcasAnteriores * (array[i].distance - array[i - 1].distance) +
+                  array[i].value,
+              ]);
+  
+              yAnterior -=
+                array[i].value -
+                forcasAnteriores * (array[i].distance - array[i - 1].distance);
+          
 
-            yAnterior -=
-              array[i].value -
-              forcasAnteriores * (array[i].distance - array[i - 1].distance);
+
           } else if (array[i].type == "force") {
-
             if(array[i-1].type == "weight"){
               
               draft.push([
@@ -471,9 +473,9 @@ export default function Home() {
             }else{
               draft.push([
                 array[i].distance,
-                yAnterior +  forcasAnteriores * (array[i].distance - array[i - 1].distance),
+                yAnterior + forcasAnteriores * (array[i].distance - array[i - 1].distance),
               ]);
-  
+              
               yAnterior += forcasAnteriores * (array[i].distance - array[i - 1].distance);
   
               forcasAnteriores += array[i].value;
@@ -519,7 +521,7 @@ export default function Home() {
     loadSheaForceGraphData();
     loadMomentChartData();
 
-  },[supportType, beamLength, forces, moments, weights, beamProfile]);
+  },[supportType, forces, moments, weights, beamProfile]);
 
 
   return (
@@ -542,12 +544,10 @@ export default function Home() {
           <Radio value="support2">Engaste - livre</Radio>
         </RadioGroup>
         <Box w={800}>
-          <Slider
+          <InputNumber
             name="beamLeagth"
             label="Comprimento da viga"
-            beamLength={beamWidthLimit}
-            onSliderValueChange={setBeamLength}
-            sliderValue={beamLength}
+            onChange={(value) => setBeamLength(Number(value))}
           />
         </Box>
 
