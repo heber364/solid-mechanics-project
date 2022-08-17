@@ -99,11 +99,16 @@ export default function Home() {
     value: 0,
     position: 0,
   });
+
   const [rectangularBeam, setRectangularBeam] = useState<RectangularBeamProps>({
     a: 0,
     b: 0,
   });
-  const [xCrossSection, setXCrossSection] = useState(0);
+
+  const [xCrossSection, setXCrossSection] = useState(5);
+
+  const [momentChosen, setMomentChosen] = useState(0);
+ 
   /******/
 
   /*Salva as forças em um vetor*/
@@ -395,6 +400,7 @@ export default function Home() {
   }
 
   function loadMomentChartData() {
+
     var forcesAndMoments = [...forces, ...moments, ...weights];
 
     /* Ordena vetor de forças e momentos  */
@@ -439,6 +445,9 @@ export default function Home() {
     var maximumMomentValue = supportA.reactionMoment;
     var maximumMomentPosition = 0;
 
+    var momentAuxValue = 0;
+    var momentAuxPosition = xCrossSection;
+
     const newData = produce(data, (draft) => {
       var forcasAnteriores = supportA.reactionForce;
       var yAnterior = 0;
@@ -448,6 +457,11 @@ export default function Home() {
       }
 
       for (let i = 0; i < array.length; i++) {
+
+        if(array[i].distance == momentAuxPosition){
+          console.log(yAnterior);
+        }
+
         if (i == 0) {
           draft.push(["xAxis", "yAxis"]);
           draft.push([0, yAnterior]);
@@ -516,6 +530,12 @@ export default function Home() {
                 maximumMomentPosition = array[i].distance + j;
                 maximumMomentValue = yAnterior + aux;
               }
+
+              
+              
+              if(parseFloat(String(array[i].distance + j )).toFixed(2) == String(momentAuxPosition)){
+                console.log(yAnterior + aux)
+              }
             }
 
             yAnterior +=
@@ -528,6 +548,8 @@ export default function Home() {
           maximumMomentPosition = array[i].distance;
           maximumMomentValue = yAnterior;
         }
+
+
       }
     });
 
@@ -535,6 +557,8 @@ export default function Home() {
       value: maximumMomentValue,
       position: maximumMomentPosition,
     });
+
+    setMomentChosen(Number(momentAuxValue));
 
     setChartData2(newData);
   }
@@ -547,8 +571,9 @@ export default function Home() {
   }, [supportType, forces, moments, weights, beamProfile]);
 
   useEffect(() => {
-    console.log(maximumMoment);
-  }, [rectangularBeam]);
+    // console.log(xCrossSection)
+    // console.log(momentChosen);
+  }, [rectangularBeam, beamProfile, xCrossSection, momentChosen]);
 
   /*Etapa 2*/
   function MomentoInercia() {
@@ -559,7 +584,6 @@ export default function Home() {
         (rectangularBeam.b * rectangularBeam.b * rectangularBeam.b)) /
       12;
 
-    console.log(I);
   }
 
 
@@ -812,12 +836,13 @@ export default function Home() {
         </Box>
       )}
 
+
+
       <Divider mt={4} />
 
       <Box mt={6} w={1000} mb={6}>
         <Flex gap={5} align="end" justify="center">
           <InputNumber
-  
             min={0}
             max={beamLength}
             name="momentDistance"
@@ -830,8 +855,7 @@ export default function Home() {
             max={rectangularBeam.b/2}
             name="yDistance"
             label="Posição (y) da seção transversal:"
-            onChange={(x) => setXCrossSection(Number(x))}
-          />
+           />
 
           <Button
             colorScheme="cyan"
@@ -839,9 +863,11 @@ export default function Home() {
             pl={20} 
             pr={20}
             >
-            Calcular tensão nomal
+            Calcular tensão normal
           </Button>
         </Flex>
+
+        Momento: {momentChosen}
 
       </Box>
     </Flex>
