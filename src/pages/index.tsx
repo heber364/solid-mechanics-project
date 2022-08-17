@@ -35,7 +35,7 @@ import {
   WeightProps,
   SupportProps,
   RectangularBeamProps,
-  MaximumMomentProps
+  MaximumMomentProps,
 } from "../utils/interfaceProps";
 import Chart from "react-google-charts";
 
@@ -88,16 +88,21 @@ export default function Home() {
       forceModule: -50,
       forceModulePosition: 5,
     },
-
   ]);
 
   const [chartData, setChartData] = useState([]);
   const [chartData2, setChartData2] = useState([]);
 
   /*Etapa 2*/
-  const [beamProfile, setBeamProfile] = useState("circular");
-  const [maximumMoment, setMaximumMomment] = useState<MaximumMomentProps>({value: 0, position:0})
-  const [rectangularBeam, setRectangularBeam] = useState<RectangularBeamProps>({a:0,b:0});
+  const [beamProfile, setBeamProfile] = useState("retangular");
+  const [maximumMoment, setMaximumMomment] = useState<MaximumMomentProps>({
+    value: 0,
+    position: 0,
+  });
+  const [rectangularBeam, setRectangularBeam] = useState<RectangularBeamProps>({
+    a: 0,
+    b: 0,
+  });
   const [xCrossSection, setXCrossSection] = useState(0);
   /******/
 
@@ -244,7 +249,7 @@ export default function Home() {
       var M1 = 0;
     } else if (supportType == "support2") {
       var By = 0;
-      var Ay = - (sumForces + sumForcesModule);
+      var Ay = -(sumForces + sumForcesModule);
 
       var M1 = sumMoments + sumForcesByDistances + sumForcesModuleByXBar;
     }
@@ -417,7 +422,7 @@ export default function Home() {
       },
     ];
 
-    if(supportType=="support2"){
+    if (supportType == "support2") {
       var array = [
         {
           type: "force",
@@ -425,10 +430,10 @@ export default function Home() {
           value: supportA.reactionForce,
           distance: 0,
         },
-        ...forcesAndMoments
+        ...forcesAndMoments,
       ];
     }
-    
+
     var data = [];
 
     var maximumMomentValue = supportA.reactionMoment;
@@ -448,46 +453,39 @@ export default function Home() {
           draft.push([0, yAnterior]);
         } else {
           if (array[i].type == "moment") {
+            draft.push([
+              array[i].distance,
+              yAnterior +
+                forcasAnteriores * (array[i].distance - array[i - 1].distance),
+            ]);
 
-              draft.push([
-                array[i].distance,
-                yAnterior +
-                  forcasAnteriores * (array[i].distance - array[i - 1].distance) ,
-              ]);
-  
-              draft.push([
-                array[i].distance,
-                yAnterior +
-                  forcasAnteriores * (array[i].distance - array[i - 1].distance) +
-                  array[i].value,
-              ]);
-  
-              yAnterior -=
-                array[i].value -
-                forcasAnteriores * (array[i].distance - array[i - 1].distance);
-          
+            draft.push([
+              array[i].distance,
+              yAnterior +
+                forcasAnteriores * (array[i].distance - array[i - 1].distance) +
+                array[i].value,
+            ]);
 
-
+            yAnterior -=
+              array[i].value -
+              forcasAnteriores * (array[i].distance - array[i - 1].distance);
           } else if (array[i].type == "force") {
-            if(array[i-1].type == "weight"){
-              
-              draft.push([
-                array[i].distance,
-                yAnterior - array[i].value,
-              ]);
+            if (array[i - 1].type == "weight") {
+              draft.push([array[i].distance, yAnterior - array[i].value]);
               forcasAnteriores = yAnterior - array[i].value;
-
-            }else{
+            } else {
               draft.push([
                 array[i].distance,
-                yAnterior + forcasAnteriores * (array[i].distance - array[i - 1].distance),
+                yAnterior +
+                  forcasAnteriores *
+                    (array[i].distance - array[i - 1].distance),
               ]);
-              
-              yAnterior += forcasAnteriores * (array[i].distance - array[i - 1].distance);
-  
+
+              yAnterior +=
+                forcasAnteriores * (array[i].distance - array[i - 1].distance);
+
               forcasAnteriores += array[i].value;
             }
-
           } else if (array[i].type == "weight") {
             draft.push([
               array[i].distance,
@@ -495,7 +493,8 @@ export default function Home() {
                 forcasAnteriores * (array[i].distance - array[i - 1].distance),
             ]);
 
-            yAnterior += forcasAnteriores * (array[i].distance - array[i - 1].distance);
+            yAnterior +=
+              forcasAnteriores * (array[i].distance - array[i - 1].distance);
 
             let expressionShearForce = function (x): number {
               return (
@@ -506,36 +505,36 @@ export default function Home() {
             };
 
             /*Plota vários pontos da carga distribuida */
-            for (let j = 0; j <= array[i].length ; j += 0.1) {
-
-              var aux = (forcasAnteriores * j) - Integral.integrate(expressionShearForce, 0, j)
+            for (let j = 0; j <= array[i].length; j += 0.1) {
+              var aux =
+                forcasAnteriores * j -
+                Integral.integrate(expressionShearForce, 0, j);
 
               draft.push([array[i].distance + j, yAnterior + aux]);
 
-              if(yAnterior + aux > maximumMomentValue){
+              if (yAnterior + aux > maximumMomentValue) {
                 maximumMomentPosition = array[i].distance + j;
                 maximumMomentValue = yAnterior + aux;
               }
-
             }
 
-            yAnterior += -Integral.integrate(expressionShearForce,0,array[i].length) + forcasAnteriores * array[i].length;
-
-
-
+            yAnterior +=
+              -Integral.integrate(expressionShearForce, 0, array[i].length) +
+              forcasAnteriores * array[i].length;
           }
         }
 
-        if(yAnterior > maximumMomentValue){
+        if (yAnterior > maximumMomentValue) {
           maximumMomentPosition = array[i].distance;
           maximumMomentValue = yAnterior;
         }
       }
-
-      
     });
 
-    setMaximumMomment({value: maximumMomentValue,  position: maximumMomentPosition})
+    setMaximumMomment({
+      value: maximumMomentValue,
+      position: maximumMomentPosition,
+    });
 
     setChartData2(newData);
   }
@@ -545,23 +544,23 @@ export default function Home() {
     handleOrderForcesByPosition();
     loadSheaForceGraphData();
     loadMomentChartData();
+  }, [supportType, forces, moments, weights, beamProfile]);
 
-  },[supportType, forces, moments, weights, beamProfile]);
-
-
-  useEffect(()=>{
+  useEffect(() => {
     console.log(maximumMoment);
-  },[rectangularBeam])
+  }, [rectangularBeam]);
 
   /*Etapa 2*/
-  function MomentoInercia(){
+  function MomentoInercia() {
     var I = 0;
 
-    var I = (rectangularBeam.a * (rectangularBeam.b * rectangularBeam.b * rectangularBeam.b))/12
+    var I =
+      (rectangularBeam.a *
+        (rectangularBeam.b * rectangularBeam.b * rectangularBeam.b)) /
+      12;
 
     console.log(I);
   }
-
 
 
   return (
@@ -766,19 +765,18 @@ export default function Home() {
       </Heading>
       <Divider mt={1} />
 
-      <HStack mt={2}spacing={8}>
+      <HStack mt={2} spacing={8}>
         <Text>
-    
           Momento Máximo: {parseFloat(String(maximumMoment.value)).toFixed(2)} [
           N/m ]
         </Text>
         <Text>
-
-          Posição do momento máximo: {parseFloat(String(maximumMoment.position)).toFixed(2)} [ m ]
+          Posição do momento máximo:{" "}
+          {parseFloat(String(maximumMoment.position)).toFixed(2)} [ m ]
         </Text>
       </HStack>
 
-      <Divider mt={1} mb={2}/>
+      <Divider mt={1} mb={2} />
 
       <RadioGroup
         name="tipoviga"
@@ -791,7 +789,7 @@ export default function Home() {
         <Radio value="triangular">Triangular</Radio>
       </RadioGroup>
 
-      {beamProfile=="retangular" && 
+      {beamProfile == "retangular" && (
         <Box className="Viga retangular" mt={6}>
           <HStack spacing={8} w={200}>
             <InputNumber
@@ -812,21 +810,40 @@ export default function Home() {
             />
           </HStack>
         </Box>
-        }
+      )}
 
-      <Divider mt={4}/>
+      <Divider mt={4} />
 
-      <Box mt={6}>
-        <InputNumber 
-          w={32}
-          min={0}
-          max={beamLength}
-          name="distanceMoment"
-          label="Posição (x) da seção transversal a ser analisada"
-          onChange={(x) => setXCrossSection(Number(x))}
-        />
+      <Box mt={6} w={1000} mb={6}>
+        <Flex gap={5} align="end" justify="center">
+          <InputNumber
+  
+            min={0}
+            max={beamLength}
+            name="momentDistance"
+            label="Posição (x) da viga:"
+            onChange={(x) => setXCrossSection(Number(x))}
+          />
+          
+          <InputNumber 
+            min={-rectangularBeam.b/2}
+            max={rectangularBeam.b/2}
+            name="yDistance"
+            label="Posição (y) da seção transversal:"
+            onChange={(x) => setXCrossSection(Number(x))}
+          />
+
+          <Button
+            colorScheme="cyan"
+            onClick={() => loadMomentChartData()}
+            pl={20} 
+            pr={20}
+            >
+            Calcular tensão nomal
+          </Button>
+        </Flex>
+
       </Box>
-
     </Flex>
   );
 }
