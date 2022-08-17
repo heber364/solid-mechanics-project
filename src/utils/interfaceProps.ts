@@ -29,3 +29,13 @@
     reactionForce: number;
     reactionMoment: number; 
   }
+
+  export interface RectangularBeamProps{
+    a: number;
+    b:number;
+  }
+
+  export interface MaximumMomentProps{
+    position: number;
+    value: number; 
+  }
