@@ -40,6 +40,7 @@ import {
 import Chart from "react-google-charts";
 
 export default function Home() {
+  const [updateUseEffect, setUpdateUseEffect] = useState(false);
   /*Valores temporarios dos inputs*/
 
   /*Etapa 1*/
@@ -105,10 +106,12 @@ export default function Home() {
     b: 0,
   });
 
-  const [xCrossSection, setXCrossSection] = useState(5);
+  const [xSectionChosen, setXSectionChosen] = useState(0);
+  const [distanceNeutralAxis, setDistanceNeutralAxis] = useState(0);
 
   const [momentChosen, setMomentChosen] = useState(0);
- 
+  const [normalShear, setNormalShear ] = useState(0);
+  const [maximumNormalShear, setMaximumNormalShear ] = useState(0);
   /******/
 
   /*Salva as forças em um vetor*/
@@ -446,7 +449,7 @@ export default function Home() {
     var maximumMomentPosition = 0;
 
     var momentAuxValue = 0;
-    var momentAuxPosition = xCrossSection;
+    var momentAuxPosition = xSectionChosen;
 
     const newData = produce(data, (draft) => {
       var forcasAnteriores = supportA.reactionForce;
@@ -459,7 +462,7 @@ export default function Home() {
       for (let i = 0; i < array.length; i++) {
 
         if(array[i].distance == momentAuxPosition){
-          console.log(yAnterior);
+          momentAuxValue = array[i].value;
         }
 
         if (i == 0) {
@@ -519,7 +522,7 @@ export default function Home() {
             };
 
             /*Plota vários pontos da carga distribuida */
-            for (let j = 0; j <= array[i].length; j += 0.1) {
+            for (let j = 0; j < array[i].length; j += 0.1) {
               var aux =
                 forcasAnteriores * j -
                 Integral.integrate(expressionShearForce, 0, j);
@@ -528,13 +531,13 @@ export default function Home() {
 
               if (yAnterior + aux > maximumMomentValue) {
                 maximumMomentPosition = array[i].distance + j;
-                maximumMomentValue = yAnterior + aux;
+                maximumMomentValue = Number(parseFloat(String(yAnterior + aux)).toFixed(2));
               }
 
-              
-              
-              if(parseFloat(String(array[i].distance + j )).toFixed(2) == String(momentAuxPosition)){
-                console.log(yAnterior + aux)
+              let positionAux = Number(parseFloat(String(array[i].distance + j )).toFixed(2));
+
+              if(positionAux == momentAuxPosition ){
+                momentAuxValue = Number(parseFloat(String(yAnterior + aux)).toFixed(2));
               }
             }
 
@@ -558,10 +561,11 @@ export default function Home() {
       position: maximumMomentPosition,
     });
 
-    setMomentChosen(Number(momentAuxValue));
+    setMomentChosen(momentAuxValue);
 
     setChartData2(newData);
   }
+
 
   useEffect(() => {
     handleCalculateSupportReactions();
@@ -571,21 +575,23 @@ export default function Home() {
   }, [supportType, forces, moments, weights, beamProfile]);
 
   useEffect(() => {
-    // console.log(xCrossSection)
-    // console.log(momentChosen);
-  }, [rectangularBeam, beamProfile, xCrossSection, momentChosen]);
+    loadMomentChartData();
+    loadNormalShear();
+  }, [updateUseEffect]);
 
   /*Etapa 2*/
-  function MomentoInercia() {
-    var I = 0;
+ 
 
-    var I =
-      (rectangularBeam.a *
-        (rectangularBeam.b * rectangularBeam.b * rectangularBeam.b)) /
-      12;
+  function loadNormalShear(){
 
+    let momentInertia = (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
+    console.log("Momento de inercia:", momentInertia)
+    let maximumNormalShearAux = (maximumMoment.value * (rectangularBeam.b/2)) / momentInertia;
+    let normalShearAux = (momentChosen * (distanceNeutralAxis)) / momentInertia;
+
+    setNormalShear(normalShearAux);
+    setMaximumNormalShear(maximumNormalShearAux)
   }
-
 
   return (
     <Flex direction="column" justify="center" px={20}>
@@ -783,25 +789,11 @@ export default function Home() {
         data={chartData2}
         options={momentOptions}
       />
-      <Divider mt={2} mb={1} />
+      <Divider mt={2} mb={2} />
       <Heading as="h2" fontSize={20} background="gray.800">
         Etapa II
       </Heading>
-      <Divider mt={1} />
-
-      <HStack mt={2} spacing={8}>
-        <Text>
-          Momento Máximo: {parseFloat(String(maximumMoment.value)).toFixed(2)} [
-          N/m ]
-        </Text>
-        <Text>
-          Posição do momento máximo:{" "}
-          {parseFloat(String(maximumMoment.position)).toFixed(2)} [ m ]
-        </Text>
-      </HStack>
-
-      <Divider mt={1} mb={2} />
-
+      <Divider mt={2} />
       <RadioGroup
         name="tipoviga"
         label="Perfil da Viga"
@@ -836,8 +828,6 @@ export default function Home() {
         </Box>
       )}
 
-
-
       <Divider mt={4} />
 
       <Box mt={6} w={1000} mb={6}>
@@ -847,28 +837,40 @@ export default function Home() {
             max={beamLength}
             name="momentDistance"
             label="Posição (x) da viga:"
-            onChange={(x) => setXCrossSection(Number(x))}
+            onChange={(x) => setXSectionChosen(Number(x))}
           />
           
           <InputNumber 
             min={-rectangularBeam.b/2}
             max={rectangularBeam.b/2}
             name="yDistance"
-            label="Posição (y) da seção transversal:"
+            label="Distância (y) do eixo neutro:"
+            onChange={(y) => setDistanceNeutralAxis(Number(y))}
            />
 
           <Button
             colorScheme="cyan"
-            onClick={() => loadMomentChartData()}
+            onClick={() => setUpdateUseEffect(!updateUseEffect)}
             pl={20} 
             pr={20}
             >
             Calcular tensão normal
           </Button>
         </Flex>
+      </Box>
+      <Divider mt={4} mb={2} />
+      <Box>
+        <Heading as="h2" fontSize={24} bgColor="cyan.500" pl={2}>Resultados:</Heading>
+        <HStack spacing={64}>
+          <Text fontSize={20}>Momento Máximo: {maximumMoment.value} [ N / m ]</Text>
+          <Text fontSize={20}>Tensão normal máxima: {maximumNormalShear} [ Pa ]</Text>  
+        </HStack> 
+        <HStack spacing={36}>
+          <Text fontSize={20}>Momento da posição escolhida: {momentChosen} [ N / m ]</Text>
+          <Text fontSize={20}>Tensão normal escolhida: {normalShear} [ Pa ]</Text>
 
-        Momento: {momentChosen}
-
+        </HStack>
+        
       </Box>
     </Flex>
   );
