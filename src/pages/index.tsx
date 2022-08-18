@@ -780,7 +780,7 @@ export default function Home() {
 
       var A1 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
       var A3 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
-      var A2 = UBeam.vertical.b * UBeam.horizontal.h;
+      var A2 = UBeam.horizontal.b * UBeam.horizontal.h;
 
       var Y1 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
       var Y3 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
@@ -790,7 +790,7 @@ export default function Home() {
     
       var Ix1 = (UBeam.vertical.b * Math.pow(UBeam.vertical.h - UBeam.horizontal.h,3)) /12;     
       var Ix3 = (UBeam.vertical.b * Math.pow(UBeam.vertical.h - UBeam.horizontal.h, 3)) /12;
-      var Ix2 = (UBeam.vertical.b * Math.pow(UBeam.horizontal.h, 3)) / 12;
+      var Ix2 = (UBeam.horizontal.b * Math.pow(UBeam.horizontal.h, 3)) / 12;
 
       var dy1 = Y1 - centroid;
       var dy2 = Y2 - centroid;
