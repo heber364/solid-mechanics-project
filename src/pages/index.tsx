@@ -788,14 +788,8 @@ export default function Home() {
 
       centroid = (Y1 * A1 + Y2 * A2 + Y3 * A3) / (A1 + A2 + A3);
     
-      var Ix1 =
-        (UBeam.vertical.b *
-          (UBeam.vertical.h - Math.pow(UBeam.horizontal.h, 3))) /
-        12;
-      var Ix3 =
-        (UBeam.vertical.b *
-          (UBeam.vertical.h - Math.pow(UBeam.horizontal.h, 3))) /
-        12;
+      var Ix1 = (UBeam.vertical.b * Math.pow(UBeam.vertical.h - UBeam.horizontal.h,3)) /12;     
+      var Ix3 = (UBeam.vertical.b * Math.pow(UBeam.vertical.h - UBeam.horizontal.h, 3)) /12;
       var Ix2 = (UBeam.vertical.b * Math.pow(UBeam.horizontal.h, 3)) / 12;
 
       var dy1 = Y1 - centroid;
