@@ -36,12 +36,18 @@
   }
   
   export interface CircularBeamProps{
-    r: number;
-    
+    r: number; 
+  }
+
+  export interface TriangularBeamProps{
+    b: number;
+    h: number;
   }
 
   export interface MaximumMomentProps{
     position: number;
     value: number; 
   }
+
+
 

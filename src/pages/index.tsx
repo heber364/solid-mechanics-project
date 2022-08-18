@@ -12,8 +12,6 @@ import {
 
 import { RadioGroup } from "../components/CheckBoxGroup";
 import { InputNumber } from "../components/InputNumber";
-import { RangeSlider } from "../components/RangeSlider";
-import { Slider } from "../components/Slider";
 import { TagForce } from "../components/Tag/TagForce";
 import { TagMoment } from "../components/Tag/TagMoment";
 import { TagWeight } from "../components/Tag/TagWeight";
@@ -37,6 +35,7 @@ import {
   RectangularBeamProps,
   MaximumMomentProps,
   CircularBeamProps,
+  TriangularBeamProps,
 } from "../utils/interfaceProps";
 
 import Chart from "react-google-charts";
@@ -108,15 +107,24 @@ export default function Home() {
     a: 0,
     b: 0,
   });
+  const [distanceNeutralAxis, setDistanceNeutralAxis] = useState(0);
 
   const [circularBeam, setCircularBeam] = useState<CircularBeamProps>({
     r: 0,
   });
 
-  const [xSectionChosen, setXSectionChosen] = useState(0);
-  const [distanceNeutralAxis, setDistanceNeutralAxis] = useState(0);
+  const [triangularBeam, setTriangularBeam] = useState<TriangularBeamProps>({
+    b: 0,
+    h: 0,
+  });
 
-  const [momentChosen, setMomentChosen] = useState(0);
+  const [xSectionChosen, setXSectionChosen] = useState(0);
+
+
+  const [momentChosen, setMomentChosen] = useState<MaximumMomentProps>({
+    position:0,
+    value:0
+  });
   const [normalShear, setNormalShear] = useState(0);
   const [maximumNormalShear, setMaximumNormalShear] = useState(0);
   /******/
@@ -535,7 +543,11 @@ export default function Home() {
               draft.push([array[i].distance + j, yAnterior + aux]);
 
               if (yAnterior + aux > maximumMomentValue) {
-                maximumMomentPosition = array[i].distance + j;
+
+                maximumMomentPosition = Number(
+                  parseFloat(String(array[i].distance + j )).toFixed(2)
+                );
+
                 maximumMomentValue = Number(
                   parseFloat(String(yAnterior + aux)).toFixed(2)
                 );
@@ -546,9 +558,9 @@ export default function Home() {
               );
 
               if (positionAux == momentAuxPosition) {
-                momentAuxValue = Number(
-                  parseFloat(String(yAnterior + aux)).toFixed(2)
-                );
+                  momentAuxValue = Number(parseFloat(String(yAnterior + aux)).toFixed(2)
+              );
+                
               }
             }
 
@@ -570,7 +582,7 @@ export default function Home() {
       position: maximumMomentPosition,
     });
 
-    setMomentChosen(momentAuxValue);
+    setMomentChosen({value: momentAuxValue, position:momentAuxPosition});
 
     setChartData2(newData);
   }
@@ -590,14 +602,33 @@ export default function Home() {
   /*Etapa 2*/
 
   function loadNormalShear() {
-    let momentInertia =
-      (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
-    console.log("Momento de inercia:", momentInertia);
+    var momentInertia;
+    var maximumNormalShearAux;
+    var normalShearAux;
 
-    let maximumNormalShearAux =
-      (maximumMoment.value * (rectangularBeam.b / 2)) / momentInertia;
+    if (beamProfile == "retangular") {
+      momentInertia = (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
 
-    let normalShearAux = (momentChosen * distanceNeutralAxis) / momentInertia;
+      maximumNormalShearAux =
+        (maximumMoment.value * (rectangularBeam.b / 2)) / momentInertia;
+
+      normalShearAux = (momentChosen.value * distanceNeutralAxis) / momentInertia;
+    } else if (beamProfile == "circular") {
+
+      momentInertia = (3.14 * Math.pow(circularBeam.r, 4)) / 4;
+
+      maximumNormalShearAux = (maximumMoment.value * circularBeam.r) / momentInertia;
+
+      normalShearAux = (momentChosen.value * distanceNeutralAxis) / momentInertia;
+
+
+    } else if (beamProfile == "triangular") {
+      momentInertia = (triangularBeam.b * Math.pow(triangularBeam.h, 3))/36;
+    }
+
+    normalShearAux = Number(parseFloat(String(normalShearAux)).toFixed(2));
+
+    maximumNormalShearAux = Number(parseFloat(String(maximumNormalShearAux)).toFixed(2));
 
     setNormalShear(normalShearAux);
     setMaximumNormalShear(maximumNormalShearAux);
@@ -831,7 +862,7 @@ export default function Home() {
       </RadioGroup>
 
       {beamProfile == "retangular" && (
-        <Box className="Viga retangular" mt={6}>
+        <Box mt={6}>
           <HStack spacing={8} w={200}>
             <InputNumber
               name="base"
@@ -854,7 +885,7 @@ export default function Home() {
       )}
 
       {beamProfile == "circular" && (
-        <Box className="Viga retangular" mt={6}>
+        <Box mt={6}>
           <InputNumber
             name="raio"
             label="Raio da viga (r)"
@@ -863,6 +894,30 @@ export default function Home() {
           />
         </Box>
       )}
+
+      {beamProfile == "triangular" && (
+        <Box mt={6}>
+          <HStack spacing={8} w={400}>
+            <InputNumber
+              name="base"
+              label="Base da viga triangular (b)"
+              w={64}
+              onChange={(base) =>
+                setTriangularBeam({ b: Number(base), h: triangularBeam.h})
+              }
+            />
+            <InputNumber
+              name="altura"
+              label="Altura da viga triangular (h)"
+              w={64}
+              onChange={(altura) =>
+                setTriangularBeam({ b:  triangularBeam.b, h: Number(altura)})
+              }
+            />
+          </HStack>
+        </Box>
+      )}
+
 
       <Divider mt={4} />
 
@@ -876,13 +931,25 @@ export default function Home() {
             onChange={(x) => setXSectionChosen(Number(x))}
           />
 
-          <InputNumber
-            min={-rectangularBeam.b / 2}
-            max={rectangularBeam.b / 2}
+          {beamProfile == "retangular" && (
+            <InputNumber
+              min={-rectangularBeam.b / 2}
+              max={rectangularBeam.b / 2}
+              name="yDistance"
+              label="Distância (y) do eixo neutro:"
+              onChange={(y) => setDistanceNeutralAxis(Number(y))}
+            />
+          )}
+
+          {beamProfile == "circular" && (
+            <InputNumber
+            min={-circularBeam.r}
+            max={circularBeam.r}
             name="yDistance"
             label="Distância (y) do eixo neutro:"
             onChange={(y) => setDistanceNeutralAxis(Number(y))}
           />
+          )}
 
           <Button
             colorScheme="cyan"
@@ -903,15 +970,22 @@ export default function Home() {
         <Divider mt={2} mb={4} />
         <HStack spacing={64}>
           <Text fontSize={20}>
+            Posição do momento máximo: {maximumMoment.position} [ m ]
+          </Text>
+          <Text fontSize={20}>
             Momento Máximo: {maximumMoment.value} [ N / m ]
           </Text>
           <Text fontSize={20}>
             Tensão normal máxima: {maximumNormalShear} [ Pa ]
           </Text>
         </HStack>
+        <Divider mt={4} mb={4} />
         <HStack spacing={36}>
+         <Text fontSize={20}>
+            Posição do momento escolhido: {momentChosen.position} [ m ]
+          </Text>
           <Text fontSize={20}>
-            Momento da posição escolhida: {momentChosen} [ N / m ]
+            Momento da posição escolhida: {momentChosen.value} [ N / m ]
           </Text>
           <Text fontSize={20}>
             Tensão normal escolhida: {normalShear} [ Pa ]
