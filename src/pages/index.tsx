@@ -98,15 +98,18 @@ export default function Home() {
 
   /*Etapa 2*/
   const [beamProfile, setBeamProfile] = useState("retangular");
+
   const [maximumMoment, setMaximumMomment] = useState<MaximumMomentProps>({
     value: 0,
     position: 0,
   });
 
+  
   const [rectangularBeam, setRectangularBeam] = useState<RectangularBeamProps>({
     a: 0,
     b: 0,
   });
+
   const [distanceNeutralAxis, setDistanceNeutralAxis] = useState(0);
 
   const [circularBeam, setCircularBeam] = useState<CircularBeamProps>({
@@ -125,8 +128,10 @@ export default function Home() {
     position:0,
     value:0
   });
+
   const [normalShear, setNormalShear] = useState(0);
   const [maximumNormalShear, setMaximumNormalShear] = useState(0);
+  const [minimumNormalShear, setMinimumNormalShear] = useState(0);
   /******/
 
   /*Salva as forças em um vetor*/
@@ -604,33 +609,45 @@ export default function Home() {
   function loadNormalShear() {
     var momentInertia;
     var maximumNormalShearAux;
+    var minimumNormalShearAux;
+
     var normalShearAux;
 
     if (beamProfile == "retangular") {
       momentInertia = (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
 
-      maximumNormalShearAux =
-        (maximumMoment.value * (rectangularBeam.b / 2)) / momentInertia;
+      maximumNormalShearAux = - (maximumMoment.value * (rectangularBeam.b / 2)) / momentInertia;
+      minimumNormalShearAux = - maximumNormalShearAux;
 
-      normalShearAux = (momentChosen.value * distanceNeutralAxis) / momentInertia;
+      normalShearAux = - (momentChosen.value * distanceNeutralAxis) / momentInertia;
     } else if (beamProfile == "circular") {
 
       momentInertia = (3.14 * Math.pow(circularBeam.r, 4)) / 4;
 
-      maximumNormalShearAux = (maximumMoment.value * circularBeam.r) / momentInertia;
+      maximumNormalShearAux = - (maximumMoment.value * circularBeam.r) / momentInertia;
+      minimumNormalShearAux = - maximumNormalShearAux;
 
-      normalShearAux = (momentChosen.value * distanceNeutralAxis) / momentInertia;
+      normalShearAux = - (momentChosen.value * distanceNeutralAxis) / momentInertia;
 
 
     } else if (beamProfile == "triangular") {
       momentInertia = (triangularBeam.b * Math.pow(triangularBeam.h, 3))/36;
-    }
+
+      maximumNormalShearAux = - (maximumMoment.value * 2/3*triangularBeam.h) / momentInertia;
+      minimumNormalShearAux = - (maximumMoment.value * 1/3*triangularBeam.h) / momentInertia;
+
+      normalShearAux = - (momentChosen.value * distanceNeutralAxis) / momentInertia;
+    }else if(beamProfile == "H"){[
+
+    ]}
 
     normalShearAux = Number(parseFloat(String(normalShearAux)).toFixed(2));
 
     maximumNormalShearAux = Number(parseFloat(String(maximumNormalShearAux)).toFixed(2));
 
     setNormalShear(normalShearAux);
+
+    setMinimumNormalShear(minimumNormalShearAux);
     setMaximumNormalShear(maximumNormalShearAux);
   }
 
@@ -950,6 +967,16 @@ export default function Home() {
             onChange={(y) => setDistanceNeutralAxis(Number(y))}
           />
           )}
+          
+          {beamProfile == "triangular" && (
+            <InputNumber
+            min={-1/3*triangularBeam.h}
+            max={2/3*triangularBeam.h}
+            name="yDistance"
+            label="Distância (y) do eixo neutro:"
+            onChange={(y) => setDistanceNeutralAxis(Number(y))}
+          />
+          )}
 
           <Button
             colorScheme="cyan"
@@ -976,7 +1003,10 @@ export default function Home() {
             Momento Máximo: {maximumMoment.value} [ N / m ]
           </Text>
           <Text fontSize={20}>
-            Tensão normal máxima: {maximumNormalShear} [ Pa ]
+            Tensão normal máxima(compressão): {maximumNormalShear} [ Pa ]
+          </Text>
+          <Text fontSize={20}>
+            Tensão normal máxima(tração): {minimumNormalShear} [ Pa ]
           </Text>
         </HStack>
         <Divider mt={4} mb={4} />
@@ -988,7 +1018,7 @@ export default function Home() {
             Momento da posição escolhida: {momentChosen.value} [ N / m ]
           </Text>
           <Text fontSize={20}>
-            Tensão normal escolhida: {normalShear} [ Pa ]
+            Tensão normal escolhida ( - compressão ): {normalShear} [ Pa ]
           </Text>
         </HStack>
       </Box>
