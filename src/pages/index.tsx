@@ -815,7 +815,7 @@ export default function Home() {
 
     centroid = Number(parseFloat(String(centroid)).toFixed(3));
 
-    momentInertiaAux = Number(parseFloat(String(momentInertia)).toFixed(3));
+    momentInertiaAux = Number(parseFloat(String(momentInertiaAux)).toFixed(3));
 
     setNormalShear(normalShearAux);
 
