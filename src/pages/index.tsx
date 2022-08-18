@@ -670,7 +670,7 @@ export default function Home() {
 
   function loadNormalShear() {
     var centroid = 0;
-    var momentInertia;
+    var momentInertiaAux;
     var maximumNormalShearAux;
     var minimumNormalShearAux;
     var normalShearAux;
@@ -678,45 +678,45 @@ export default function Home() {
     if (beamProfile == "retangular") {
       centroid = rectangularBeam.b / 2;
 
-      momentInertia = (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
+      momentInertiaAux = (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
 
       maximumNormalShearAux =
-        -(maximumMoment.value * (rectangularBeam.b - centroid)) / momentInertia;
+        -(maximumMoment.value * (rectangularBeam.b - centroid)) / momentInertiaAux;
       minimumNormalShearAux = -maximumNormalShearAux;
 
       normalShearAux =
         -(momentChosen.value * (distanceNeutralAxis - centroid)) /
-        momentInertia;
+        momentInertiaAux;
     } else if (beamProfile == "circular") {
       centroid = circularBeam.r;
 
-      momentInertia = (3.14 * Math.pow(circularBeam.r, 4)) / 4;
+      momentInertiaAux = (3.14 * Math.pow(circularBeam.r, 4)) / 4;
 
       maximumNormalShearAux =
-        -(maximumMoment.value * circularBeam.r) / momentInertia;
+        -(maximumMoment.value * circularBeam.r) / momentInertiaAux;
       minimumNormalShearAux = -maximumNormalShearAux;
 
       normalShearAux =
         -(momentChosen.value * (distanceNeutralAxis - centroid)) /
-        momentInertia;
+        momentInertiaAux;
     } else if (beamProfile == "triangular") {
       centroid = (1 / 3) * triangularBeam.h;
 
-      momentInertia = (triangularBeam.b * Math.pow(triangularBeam.h, 3)) / 36;
+      momentInertiaAux = (triangularBeam.b * Math.pow(triangularBeam.h, 3)) / 36;
 
       maximumNormalShearAux =
-        -(maximumMoment.value * (triangularBeam.h - centroid)) / momentInertia;
+        -(maximumMoment.value * (triangularBeam.h - centroid)) / momentInertiaAux;
       minimumNormalShearAux =
-        -(maximumMoment.value * ((-1 / 3) * triangularBeam.h)) / momentInertia;
+        -(maximumMoment.value * ((-1 / 3) * triangularBeam.h)) / momentInertiaAux;
 
       normalShearAux =
         -(momentChosen.value * (distanceNeutralAxis - centroid)) /
-        momentInertia;
+        momentInertiaAux;
     } else if (beamProfile == "I") {
       let alturaTotal = IBeam.vertical.h + 2 * IBeam.horizontal.h;
       centroid = (IBeam.vertical.h + 2 * IBeam.horizontal.h) / 2;
 
-      momentInertia =
+      momentInertiaAux =
         (IBeam.vertical.b * Math.pow(IBeam.vertical.h, 3)) / 12 +
         2 *
           ((IBeam.horizontal.b * Math.pow(IBeam.horizontal.h, 3)) / 12 +
@@ -725,26 +725,26 @@ export default function Home() {
               Math.pow(IBeam.vertical.h / 2 + IBeam.horizontal.h / 2, 2));
 
       maximumNormalShearAux =
-        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertia;
+        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertiaAux;
       minimumNormalShearAux = -maximumNormalShearAux;
 
       normalShearAux =
         -(momentChosen.value * (distanceNeutralAxis - centroid)) /
-        momentInertia;
+        momentInertiaAux;
     } else if (beamProfile == "H") {
       centroid = HBeam.vertical.h / 2;
 
-      momentInertia =
+      momentInertiaAux =
         (HBeam.horizontal.b * Math.pow(IBeam.horizontal.h, 3)) / 12 +
         2 * ((HBeam.vertical.b * Math.pow(HBeam.vertical.h, 3)) / 12);
 
       maximumNormalShearAux =
-        -(maximumMoment.value * (HBeam.vertical.h - centroid)) / momentInertia;
+        -(maximumMoment.value * (HBeam.vertical.h - centroid)) / momentInertiaAux;
       minimumNormalShearAux = -maximumNormalShearAux;
 
       normalShearAux =
         -(momentChosen.value * (distanceNeutralAxis - centroid)) /
-        momentInertia;
+        momentInertiaAux;
     } else if (beamProfile == "T") {
       let alturaTotal = TBeam.vertical.h + TBeam.horizontal.h;
 
@@ -756,7 +756,7 @@ export default function Home() {
         (TBeam.vertical.h * TBeam.vertical.b +
           TBeam.horizontal.h * TBeam.horizontal.b);
 
-      momentInertia =
+      momentInertiaAux =
         (TBeam.vertical.b * Math.pow(TBeam.vertical.h, 3)) / 12 +
         TBeam.vertical.b *
           TBeam.vertical.h *
@@ -768,26 +768,26 @@ export default function Home() {
               Math.pow(TBeam.horizontal.h / 2 - centroid, 2)));
 
       maximumNormalShearAux =
-        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertia;
+        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertiaAux;
       minimumNormalShearAux =
-        -(maximumMoment.value * -centroid) / momentInertia;
+        -(maximumMoment.value * -centroid) / momentInertiaAux;
 
       normalShearAux =
         -(momentChosen.value * (distanceNeutralAxis - centroid)) /
-        momentInertia;
+        momentInertiaAux;
     } else if (beamProfile == "U") {
       let alturaTotal = UBeam.vertical.h;
 
-      let A1 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
-      let A3 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
-      let A2 = UBeam.vertical.b * UBeam.horizontal.h;
+      var A1 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
+      var A3 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
+      var A2 = UBeam.vertical.b * UBeam.horizontal.h;
 
-      let Y1 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
-      let Y3 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
-      let Y2 = UBeam.horizontal.h / 2;
+      var Y1 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
+      var Y3 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
+      var Y2 = UBeam.horizontal.h / 2;
 
       centroid = (Y1 * A1 + Y2 * A2 + Y3 * A3) / (A1 + A2 + A3);
-
+    
       var Ix1 =
         (UBeam.vertical.b *
           (UBeam.vertical.h - Math.pow(UBeam.horizontal.h, 3))) /
@@ -801,17 +801,11 @@ export default function Home() {
       var dy1 = Y1 - centroid;
       var dy2 = Y2 - centroid;
       var dy3 = Y3 - centroid;
+      
+      momentInertiaAux = Ix1 + A1 * Math.pow(dy1, 2) + (Ix2 + A2 * Math.pow(dy2, 2)) + (Ix3 + A3 * Math.pow(dy3, 2));
 
-      momentInertia =
-        Ix1 +
-        A1 * Math.pow(dy1, 2) +
-        (Ix2 + A2 * Math.pow(dy2, 2)) +
-        (Ix3 + A3 * Math.pow(dy3, 2));
-
-      maximumNormalShearAux =
-        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertia;
-      minimumNormalShearAux =
-        -(maximumMoment.value * -centroid) / momentInertia;
+      maximumNormalShearAux = - (maximumMoment.value * (alturaTotal - centroid)) / momentInertiaAux;
+      minimumNormalShearAux = - (maximumMoment.value * -centroid) / momentInertiaAux;
       normalShearAux = -(momentChosen.value * (distanceNeutralAxis - centroid));
     }
 
@@ -827,7 +821,7 @@ export default function Home() {
 
     centroid = Number(parseFloat(String(centroid)).toFixed(3));
 
-    momentInertia = Number(parseFloat(String(momentInertia)).toFixed(3));
+    momentInertiaAux = Number(parseFloat(String(momentInertia)).toFixed(3));
 
     setNormalShear(normalShearAux);
 
@@ -835,7 +829,7 @@ export default function Home() {
     setMaximumNormalShear(maximumNormalShearAux);
 
     setCentroid(centroid);
-    setMomentInertia(momentInertia);
+    setMomentInertia(momentInertiaAux);
   }
 
   return (
