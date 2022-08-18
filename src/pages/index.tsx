@@ -36,6 +36,10 @@ import {
   MaximumMomentProps,
   CircularBeamProps,
   TriangularBeamProps,
+  IBeamProps,
+  HBeamProps,
+  TBeamProps,
+  UBeamProps,
 } from "../utils/interfaceProps";
 
 import Chart from "react-google-charts";
@@ -99,18 +103,10 @@ export default function Home() {
   /*Etapa 2*/
   const [beamProfile, setBeamProfile] = useState("retangular");
 
-  const [maximumMoment, setMaximumMomment] = useState<MaximumMomentProps>({
-    value: 0,
-    position: 0,
-  });
-
-  
   const [rectangularBeam, setRectangularBeam] = useState<RectangularBeamProps>({
     a: 0,
     b: 0,
   });
-
-  const [distanceNeutralAxis, setDistanceNeutralAxis] = useState(0);
 
   const [circularBeam, setCircularBeam] = useState<CircularBeamProps>({
     r: 0,
@@ -121,17 +117,68 @@ export default function Home() {
     h: 0,
   });
 
-  const [xSectionChosen, setXSectionChosen] = useState(0);
+  const [IBeam, setIBeam] = useState<IBeamProps>({
+    vertical: {
+      h: 0,
+      b: 0,
+    },
+    horizontal: {
+      h: 0,
+      b: 0,
+    },
+  });
 
+  const [HBeam, setHBeam] = useState<HBeamProps>({
+    horizontal: {
+      h: 0,
+      b: 0,
+    },
+    vertical: {
+      h: 0,
+      b: 0,
+    },
+  });
+
+  const [TBeam, setTBeam] = useState<TBeamProps>({
+    vertical: {
+      h: 0,
+      b: 0,
+    },
+    horizontal: {
+      h: 0,
+      b: 0,
+    },
+  });
+
+  const [UBeam, setUBeam] = useState<UBeamProps>({
+    vertical: {
+      h: 0,
+      b: 0,
+    },
+    horizontal: {
+      h: 0,
+      b: 0,
+    },
+  });
+
+  const [maximumMoment, setMaximumMomment] = useState<MaximumMomentProps>({
+    value: 0,
+    position: 0,
+  });
 
   const [momentChosen, setMomentChosen] = useState<MaximumMomentProps>({
-    position:0,
-    value:0
+    position: 0,
+    value: 0,
   });
+
+  const [distanceNeutralAxis, setDistanceNeutralAxis] = useState(0);
+  const [xSectionChosen, setXSectionChosen] = useState(0);
 
   const [normalShear, setNormalShear] = useState(0);
   const [maximumNormalShear, setMaximumNormalShear] = useState(0);
   const [minimumNormalShear, setMinimumNormalShear] = useState(0);
+  const [centroid, setCentroid] = useState(0);
+  const [momentInertia, setMomentInertia] = useState(0);
   /******/
 
   /*Salva as forças em um vetor*/
@@ -548,9 +595,8 @@ export default function Home() {
               draft.push([array[i].distance + j, yAnterior + aux]);
 
               if (yAnterior + aux > maximumMomentValue) {
-
                 maximumMomentPosition = Number(
-                  parseFloat(String(array[i].distance + j )).toFixed(2)
+                  parseFloat(String(array[i].distance + j)).toFixed(2)
                 );
 
                 maximumMomentValue = Number(
@@ -563,9 +609,9 @@ export default function Home() {
               );
 
               if (positionAux == momentAuxPosition) {
-                  momentAuxValue = Number(parseFloat(String(yAnterior + aux)).toFixed(2)
-              );
-                
+                momentAuxValue = Number(
+                  parseFloat(String(yAnterior + aux)).toFixed(2)
+                );
               }
             }
 
@@ -587,7 +633,7 @@ export default function Home() {
       position: maximumMomentPosition,
     });
 
-    setMomentChosen({value: momentAuxValue, position:momentAuxPosition});
+    setMomentChosen({ value: momentAuxValue, position: momentAuxPosition });
 
     setChartData2(newData);
   }
@@ -607,48 +653,173 @@ export default function Home() {
   /*Etapa 2*/
 
   function loadNormalShear() {
+    var centroid = 0;
     var momentInertia;
     var maximumNormalShearAux;
     var minimumNormalShearAux;
-
     var normalShearAux;
 
     if (beamProfile == "retangular") {
+      centroid = rectangularBeam.b / 2;
+
       momentInertia = (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
 
-      maximumNormalShearAux = - (maximumMoment.value * (rectangularBeam.b / 2)) / momentInertia;
-      minimumNormalShearAux = - maximumNormalShearAux;
+      maximumNormalShearAux =
+        -(maximumMoment.value * (rectangularBeam.b - centroid)) / momentInertia;
+      minimumNormalShearAux = -maximumNormalShearAux;
 
-      normalShearAux = - (momentChosen.value * distanceNeutralAxis) / momentInertia;
+      normalShearAux =
+        -(momentChosen.value * (distanceNeutralAxis - centroid)) /
+        momentInertia;
     } else if (beamProfile == "circular") {
+      centroid = circularBeam.r;
 
       momentInertia = (3.14 * Math.pow(circularBeam.r, 4)) / 4;
 
-      maximumNormalShearAux = - (maximumMoment.value * circularBeam.r) / momentInertia;
-      minimumNormalShearAux = - maximumNormalShearAux;
+      maximumNormalShearAux =
+        -(maximumMoment.value * circularBeam.r) / momentInertia;
+      minimumNormalShearAux = -maximumNormalShearAux;
 
-      normalShearAux = - (momentChosen.value * distanceNeutralAxis) / momentInertia;
-
-
+      normalShearAux =
+        -(momentChosen.value * (distanceNeutralAxis - centroid)) /
+        momentInertia;
     } else if (beamProfile == "triangular") {
-      momentInertia = (triangularBeam.b * Math.pow(triangularBeam.h, 3))/36;
+      centroid = (1 / 3) * triangularBeam.h;
 
-      maximumNormalShearAux = - (maximumMoment.value * 2/3*triangularBeam.h) / momentInertia;
-      minimumNormalShearAux = - (maximumMoment.value * 1/3*triangularBeam.h) / momentInertia;
+      momentInertia = (triangularBeam.b * Math.pow(triangularBeam.h, 3)) / 36;
 
-      normalShearAux = - (momentChosen.value * distanceNeutralAxis) / momentInertia;
-    }else if(beamProfile == "H"){[
+      maximumNormalShearAux =
+        -(maximumMoment.value * (triangularBeam.h - centroid)) / momentInertia;
+      minimumNormalShearAux =
+        -(maximumMoment.value * ((-1 / 3) * triangularBeam.h)) / momentInertia;
 
-    ]}
+      normalShearAux =
+        -(momentChosen.value * (distanceNeutralAxis - centroid)) /
+        momentInertia;
+    } else if (beamProfile == "I") {
+      let alturaTotal = IBeam.vertical.h + 2 * IBeam.horizontal.h;
+      centroid = (IBeam.vertical.h + 2 * IBeam.horizontal.h) / 2;
 
-    normalShearAux = Number(parseFloat(String(normalShearAux)).toFixed(2));
+      momentInertia =
+        (IBeam.vertical.b * Math.pow(IBeam.vertical.h, 3)) / 12 +
+        2 *
+          ((IBeam.horizontal.b * Math.pow(IBeam.horizontal.h, 3)) / 12 +
+            IBeam.horizontal.h *
+              IBeam.horizontal.b *
+              Math.pow(IBeam.vertical.h / 2 + IBeam.horizontal.h / 2, 2));
 
-    maximumNormalShearAux = Number(parseFloat(String(maximumNormalShearAux)).toFixed(2));
+      maximumNormalShearAux =
+        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertia;
+      minimumNormalShearAux = -maximumNormalShearAux;
+
+      normalShearAux =
+        -(momentChosen.value * (distanceNeutralAxis - centroid)) /
+        momentInertia;
+    } else if (beamProfile == "H") {
+      centroid = HBeam.vertical.h / 2;
+
+      momentInertia =
+        (HBeam.horizontal.b * Math.pow(IBeam.horizontal.h, 3)) / 12 +
+        2 * ((HBeam.vertical.b * Math.pow(HBeam.vertical.h, 3)) / 12);
+
+      maximumNormalShearAux =
+        -(maximumMoment.value * (HBeam.vertical.h - centroid)) / momentInertia;
+      minimumNormalShearAux = -maximumNormalShearAux;
+
+      normalShearAux =
+        -(momentChosen.value * (distanceNeutralAxis - centroid)) /
+        momentInertia;
+    } else if (beamProfile == "T") {
+      let alturaTotal = TBeam.vertical.h + TBeam.horizontal.h;
+
+      centroid =
+        ((TBeam.vertical.h / 2) * TBeam.vertical.h * TBeam.vertical.b +
+          (TBeam.horizontal.h / 2 + TBeam.vertical.h) *
+            TBeam.horizontal.h *
+            TBeam.horizontal.b) /
+        (TBeam.vertical.h * TBeam.vertical.b +
+          TBeam.horizontal.h * TBeam.horizontal.b);
+
+      momentInertia =
+        (TBeam.vertical.b * Math.pow(TBeam.vertical.h, 3)) / 12 +
+        TBeam.vertical.b *
+          TBeam.vertical.h *
+          (centroid - Math.pow(TBeam.vertical.h / 2, 2)) +
+        ((TBeam.horizontal.b * Math.pow(TBeam.horizontal.h, 3)) / 12 +
+          TBeam.horizontal.b *
+            TBeam.horizontal.h *
+            (TBeam.vertical.h +
+              Math.pow(TBeam.horizontal.h / 2 - centroid, 2)));
+
+      maximumNormalShearAux =
+        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertia;
+      minimumNormalShearAux =
+        -(maximumMoment.value * -centroid) / momentInertia;
+
+      normalShearAux =
+        -(momentChosen.value * (distanceNeutralAxis - centroid)) /
+        momentInertia;
+    } else if (beamProfile == "U") {
+      let alturaTotal = UBeam.vertical.h;
+
+      let A1 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
+      let A3 = (UBeam.vertical.h - UBeam.horizontal.h) * UBeam.vertical.b;
+      let A2 = UBeam.vertical.b * UBeam.horizontal.h;
+
+      let Y1 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
+      let Y3 = (UBeam.vertical.h - UBeam.horizontal.h) / 2 + UBeam.horizontal.h;
+      let Y2 = UBeam.horizontal.h / 2;
+
+      centroid = (Y1 * A1 + Y2 * A2 + Y3 * A3) / (A1 + A2 + A3);
+
+      var Ix1 =
+        (UBeam.vertical.b *
+          (UBeam.vertical.h - Math.pow(UBeam.horizontal.h, 3))) /
+        12;
+      var Ix3 =
+        (UBeam.vertical.b *
+          (UBeam.vertical.h - Math.pow(UBeam.horizontal.h, 3))) /
+        12;
+      var Ix2 = (UBeam.vertical.b * Math.pow(UBeam.horizontal.h, 3)) / 12;
+
+      var dy1 = Y1 - centroid;
+      var dy2 = Y2 - centroid;
+      var dy3 = Y3 - centroid;
+
+      momentInertia =
+        Ix1 +
+        A1 * Math.pow(dy1, 2) +
+        (Ix2 + A2 * Math.pow(dy2, 2)) +
+        (Ix3 + A3 * Math.pow(dy3, 2));
+
+      maximumNormalShearAux =
+        -(maximumMoment.value * (alturaTotal - centroid)) / momentInertia;
+      minimumNormalShearAux =
+        -(maximumMoment.value * -centroid) / momentInertia;
+      normalShearAux = -(momentChosen.value * (distanceNeutralAxis - centroid));
+    }
+
+    normalShearAux = Number(parseFloat(String(normalShearAux)).toFixed(3));
+
+    maximumNormalShearAux = Number(
+      parseFloat(String(maximumNormalShearAux)).toFixed(3)
+    );
+
+    minimumNormalShearAux = Number(
+      parseFloat(String(minimumNormalShearAux)).toFixed(3)
+    );
+
+    centroid = Number(parseFloat(String(centroid)).toFixed(3));
+
+    momentInertia = Number(parseFloat(String(momentInertia)).toFixed(3));
 
     setNormalShear(normalShearAux);
 
     setMinimumNormalShear(minimumNormalShearAux);
     setMaximumNormalShear(maximumNormalShearAux);
+
+    setCentroid(centroid);
+    setMomentInertia(momentInertia);
   }
 
   return (
@@ -876,14 +1047,20 @@ export default function Home() {
         <Radio value="retangular">Retangular</Radio>
         <Radio value="circular">Circular</Radio>
         <Radio value="triangular">Triangular</Radio>
+        <Radio value="I">I</Radio>
+        <Radio value="H">H</Radio>
+        <Radio value="T">T</Radio>
+        <Radio value="U">
+          U (Seção vertical compreende a altura total da figura)
+        </Radio>
       </RadioGroup>
 
       {beamProfile == "retangular" && (
         <Box mt={6}>
-          <HStack spacing={8} w={200}>
+          <HStack spacing={8} w={400}>
             <InputNumber
               name="base"
-              label="Base da viga (a)"
+              label="Base da retângulo:"
               w={36}
               onChange={(base) =>
                 setRectangularBeam({ a: Number(base), b: rectangularBeam.b })
@@ -891,7 +1068,7 @@ export default function Home() {
             />
             <InputNumber
               name="altura"
-              label="Altura da viga (b)"
+              label="Altura do retângulo:"
               w={36}
               onChange={(altura) =>
                 setRectangularBeam({ a: rectangularBeam.a, b: Number(altura) })
@@ -905,7 +1082,7 @@ export default function Home() {
         <Box mt={6}>
           <InputNumber
             name="raio"
-            label="Raio da viga (r)"
+            label="Raio do círculo:"
             w={36}
             onChange={(raio) => setCircularBeam({ r: Number(raio) })}
           />
@@ -917,24 +1094,223 @@ export default function Home() {
           <HStack spacing={8} w={400}>
             <InputNumber
               name="base"
-              label="Base da viga triangular (b)"
+              label="Base do triângulo:"
               w={64}
               onChange={(base) =>
-                setTriangularBeam({ b: Number(base), h: triangularBeam.h})
+                setTriangularBeam({ b: Number(base), h: triangularBeam.h })
               }
             />
             <InputNumber
               name="altura"
-              label="Altura da viga triangular (h)"
+              label="Altura do triângulo:"
               w={64}
               onChange={(altura) =>
-                setTriangularBeam({ b:  triangularBeam.b, h: Number(altura)})
+                setTriangularBeam({ b: triangularBeam.b, h: Number(altura) })
               }
             />
           </HStack>
         </Box>
       )}
-
+      {beamProfile == "I" && (
+        <Box mt={6}>
+          <HStack spacing={8} w={400}>
+            <InputNumber
+              name="baseHorizontal"
+              label="Base da seção horizontal:"
+              w={64}
+              onChange={(base) =>
+                setIBeam({
+                  horizontal: { b: Number(base), h: IBeam.horizontal.h },
+                  vertical: { b: IBeam.vertical.b, h: IBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaHorizontal"
+              label="Altura da seção horizontal:"
+              w={64}
+              onChange={(altura) =>
+                setIBeam({
+                  horizontal: { b: IBeam.horizontal.b, h: Number(altura) },
+                  vertical: { b: IBeam.vertical.b, h: IBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="baseVertical"
+              label="Base da seção vertical:"
+              w={64}
+              onChange={(base) =>
+                setIBeam({
+                  horizontal: { b: IBeam.horizontal.b, h: IBeam.horizontal.h },
+                  vertical: { b: Number(base), h: IBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaVertical"
+              label="Altura da seção vertical:"
+              w={64}
+              onChange={(altura) =>
+                setIBeam({
+                  horizontal: { b: IBeam.horizontal.b, h: IBeam.horizontal.h },
+                  vertical: { b: IBeam.vertical.b, h: Number(altura) },
+                })
+              }
+            />
+          </HStack>
+        </Box>
+      )}
+      {beamProfile == "H" && (
+        <Box mt={6}>
+          <HStack spacing={8} w={400}>
+            <InputNumber
+              name="baseHorizontal"
+              label="Base da seção horizontal:"
+              w={64}
+              onChange={(base) =>
+                setHBeam({
+                  horizontal: { b: Number(base), h: HBeam.horizontal.h },
+                  vertical: { b: HBeam.vertical.b, h: HBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaHorizontal"
+              label="Altura da seção horizontal:"
+              w={64}
+              onChange={(altura) =>
+                setHBeam({
+                  horizontal: { b: HBeam.horizontal.b, h: Number(altura) },
+                  vertical: { b: HBeam.vertical.b, h: HBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="baseVertical"
+              label="Base da seção vertical:"
+              w={64}
+              onChange={(base) =>
+                setHBeam({
+                  horizontal: { b: HBeam.horizontal.b, h: HBeam.horizontal.h },
+                  vertical: { b: Number(base), h: HBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaVertical"
+              label="Altura da seção vertical:"
+              w={64}
+              onChange={(altura) =>
+                setHBeam({
+                  horizontal: { b: HBeam.horizontal.b, h: HBeam.horizontal.h },
+                  vertical: { b: HBeam.vertical.b, h: Number(altura) },
+                })
+              }
+            />
+          </HStack>
+        </Box>
+      )}
+      {beamProfile == "T" && (
+        <Box mt={6}>
+          <HStack spacing={8} w={400}>
+            <InputNumber
+              name="baseHorizontal"
+              label="Base da seção horizontal:"
+              w={64}
+              onChange={(base) =>
+                setTBeam({
+                  horizontal: { b: Number(base), h: TBeam.horizontal.h },
+                  vertical: { b: TBeam.vertical.b, h: TBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaHorizontal"
+              label="Altura da seção horizontal:"
+              w={64}
+              onChange={(altura) =>
+                setTBeam({
+                  horizontal: { b: TBeam.horizontal.b, h: Number(altura) },
+                  vertical: { b: TBeam.vertical.b, h: TBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="baseVertical"
+              label="Base da seção vertical:"
+              w={64}
+              onChange={(base) =>
+                setTBeam({
+                  horizontal: { b: TBeam.horizontal.b, h: TBeam.horizontal.h },
+                  vertical: { b: Number(base), h: TBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaVertical"
+              label="Altura da seção vertical:"
+              w={64}
+              onChange={(altura) =>
+                setTBeam({
+                  horizontal: { b: TBeam.horizontal.b, h: TBeam.horizontal.h },
+                  vertical: { b: TBeam.vertical.b, h: Number(altura) },
+                })
+              }
+            />
+          </HStack>
+        </Box>
+      )}
+      {beamProfile == "U" && (
+        <Box mt={6}>
+          <HStack spacing={8} w={400}>
+            <InputNumber
+              name="baseHorizontal"
+              label="Base da seção horizontal:"
+              w={64}
+              onChange={(base) =>
+                setUBeam({
+                  horizontal: { b: Number(base), h: UBeam.horizontal.h },
+                  vertical: { b: UBeam.vertical.b, h: UBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaHorizontal"
+              label="Altura da seção horizontal:"
+              w={64}
+              onChange={(altura) =>
+                setUBeam({
+                  horizontal: { b: UBeam.horizontal.b, h: Number(altura) },
+                  vertical: { b: UBeam.vertical.b, h: UBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="baseVertical"
+              label="Base da seção vertical:"
+              w={64}
+              onChange={(base) =>
+                setUBeam({
+                  horizontal: { b: UBeam.horizontal.b, h: UBeam.horizontal.h },
+                  vertical: { b: Number(base), h: UBeam.vertical.h },
+                })
+              }
+            />
+            <InputNumber
+              name="alturaVertical"
+              label="Altura da seção vertical:"
+              w={64}
+              onChange={(altura) =>
+                setUBeam({
+                  horizontal: { b: UBeam.horizontal.b, h: UBeam.horizontal.h },
+                  vertical: { b: UBeam.vertical.b, h: Number(altura) },
+                })
+              }
+            />
+          </HStack>
+        </Box>
+      )}
 
       <Divider mt={4} />
 
@@ -950,32 +1326,66 @@ export default function Home() {
 
           {beamProfile == "retangular" && (
             <InputNumber
-              min={-rectangularBeam.b / 2}
-              max={rectangularBeam.b / 2}
+              min={0}
+              max={rectangularBeam.b}
               name="yDistance"
-              label="Distância (y) do eixo neutro:"
+              label="Posição (y) da seção transversal:"
               onChange={(y) => setDistanceNeutralAxis(Number(y))}
             />
           )}
-
           {beamProfile == "circular" && (
             <InputNumber
-            min={-circularBeam.r}
-            max={circularBeam.r}
-            name="yDistance"
-            label="Distância (y) do eixo neutro:"
-            onChange={(y) => setDistanceNeutralAxis(Number(y))}
-          />
+              min={0}
+              max={2 * circularBeam.r}
+              name="yDistance"
+              label="Posição (y) da seção transversal:"
+              onChange={(y) => setDistanceNeutralAxis(Number(y))}
+            />
           )}
-          
           {beamProfile == "triangular" && (
             <InputNumber
-            min={-1/3*triangularBeam.h}
-            max={2/3*triangularBeam.h}
-            name="yDistance"
-            label="Distância (y) do eixo neutro:"
-            onChange={(y) => setDistanceNeutralAxis(Number(y))}
-          />
+              min={0}
+              max={triangularBeam.h}
+              name="yDistance"
+              label="Posição (y) da seção transversal:"
+              onChange={(y) => setDistanceNeutralAxis(Number(y))}
+            />
+          )}
+          {beamProfile == "I" && (
+            <InputNumber
+              min={0}
+              max={IBeam.vertical.h + 2 * IBeam.horizontal.h}
+              name="yDistance"
+              label="Posição (y) da seção transversal:"
+              onChange={(y) => setDistanceNeutralAxis(Number(y))}
+            />
+          )}
+          {beamProfile == "H" && (
+            <InputNumber
+              min={0}
+              max={HBeam.vertical.h}
+              name="yDistance"
+              label="Posição (y) da seção transversal:"
+              onChange={(y) => setDistanceNeutralAxis(Number(y))}
+            />
+          )}
+          {beamProfile == "T" && (
+            <InputNumber
+              min={0}
+              max={TBeam.vertical.h + TBeam.horizontal.h}
+              name="yDistance"
+              label="Posição (y) da seção transversal:"
+              onChange={(y) => setDistanceNeutralAxis(Number(y))}
+            />
+          )}
+          {beamProfile == "U" && (
+            <InputNumber
+              min={0}
+              max={UBeam.vertical.h}
+              name="yDistance"
+              label="Posição (y) da seção transversal:"
+              onChange={(y) => setDistanceNeutralAxis(Number(y))}
+            />
           )}
 
           <Button
@@ -994,31 +1404,36 @@ export default function Home() {
         <Heading as="h2" fontSize={32} bgColor="gray.800">
           Resultados:
         </Heading>
-        <Divider mt={2} mb={4} />
-        <HStack spacing={64}>
-          <Text fontSize={20}>
-            Posição do momento máximo: {maximumMoment.position} [ m ]
+        <Divider mt={2} mb={3} />
+        <HStack spacing={10}>
+          <Text fontSize={18}>Centróide da figura: {centroid} [ m ]</Text>
+          <Text fontSize={18}>Momento de Inércia: {centroid} [ m^4 ]</Text>
+        </HStack>
+
+        <Divider mt={3} mb={4} />
+        <HStack spacing={10}>
+          <Heading as="h2" fontSize={24}>
+            Máximo:
+          </Heading>
+          <Text fontSize={16}>Posição(x): {maximumMoment.position} [ m ]</Text>
+          <Text fontSize={16}>Momento: {maximumMoment.value} [ N / m ]</Text>
+          <Text fontSize={16}>
+            Tensão normal ( Compressão ): {maximumNormalShear} [ Pa ]
           </Text>
-          <Text fontSize={20}>
-            Momento Máximo: {maximumMoment.value} [ N / m ]
-          </Text>
-          <Text fontSize={20}>
-            Tensão normal máxima(compressão): {maximumNormalShear} [ Pa ]
-          </Text>
-          <Text fontSize={20}>
-            Tensão normal máxima(tração): {minimumNormalShear} [ Pa ]
+          <Text fontSize={16}>
+            Tensão normal ( Tração): {minimumNormalShear} [ Pa ]
           </Text>
         </HStack>
         <Divider mt={4} mb={4} />
-        <HStack spacing={36}>
-         <Text fontSize={20}>
-            Posição do momento escolhido: {momentChosen.position} [ m ]
-          </Text>
-          <Text fontSize={20}>
-            Momento da posição escolhida: {momentChosen.value} [ N / m ]
-          </Text>
-          <Text fontSize={20}>
-            Tensão normal escolhida ( - compressão ): {normalShear} [ Pa ]
+        <HStack spacing={10}>
+          <Heading as="h2" fontSize={24}>
+            Escolhido:
+          </Heading>
+          <Text fontSize={16}>Posição (x): {momentChosen.position} [ m ]</Text>
+          <Text fontSize={16}>Momento: {momentChosen.value} [ N / m ]</Text>
+
+          <Text fontSize={16}>
+            Tensão normal ( + Tração ): {normalShear} [ Pa ]
           </Text>
         </HStack>
       </Box>

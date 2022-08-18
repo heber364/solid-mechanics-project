@@ -49,5 +49,49 @@
     value: number; 
   }
 
+  export interface IBeamProps {
+    vertical: {
+      b: number;
+      h: number;
+    }
+    horizontal: {
+      b: number;
+      h: number;
+    }
+  }
+
+  export interface HBeamProps{
+    horizontal: {
+      b: number;
+      h: number;
+    }
+    vertical: {
+      b: number;
+      h: number;
+    }
+  }
+
+  export interface UBeamProps{
+    horizontal: {
+      b: number;
+      h: number;
+    }
+    vertical: {
+      b: number;
+      h: number;
+    }
+  }
+
+  export interface TBeamProps{
+    horizontal: {
+      b: number;
+      h: number;
+    }
+    vertical: {
+      b: number;
+      h: number;
+    }
+  }
+
 
 
