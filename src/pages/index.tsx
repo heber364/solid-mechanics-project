@@ -50,7 +50,7 @@ export default function Home() {
   /*Valores temporarios dos inputs*/
 
   /*Etapa 1*/
-  const [beamLength, setBeamLength] = useState(10);
+  const [beamLength, setBeamLength] = useState(15);
 
   const [supportType, setSupportType] = useState("support1");
 
@@ -553,8 +553,11 @@ export default function Home() {
               forcasAnteriores * (array[i].distance - array[i - 1].distance);
           } else if (array[i].type == "force") {
             if (array[i - 1].type == "weight") {
-              draft.push([array[i].distance, yAnterior - array[i].value]);
-              forcasAnteriores = yAnterior - array[i].value;
+              draft.push([array[i].distance, yAnterior - (array[i].value * (array[i].distance - (array[i - 1].distance + array[i - 1].length)))]);
+
+              yAnterior -= (array[i].value * (array[i].distance - (array[i - 1].distance + array[i - 1].length)));
+
+              forcasAnteriores = array[i].value;
             } else {
               draft.push([
                 array[i].distance,
@@ -845,6 +848,7 @@ export default function Home() {
           <InputNumber
             name="beamLeagth"
             label="Comprimento da viga"
+            value={beamLength}
             onChange={(value) => setBeamLength(Number(value))}
           />
         </Box>
@@ -853,11 +857,13 @@ export default function Home() {
           <Box>
             <Stack spacing={10}>
               <InputNumber
+                value={forceValue}
                 name="strengthValue"
                 label="Valor da força ( + pra cima )"
                 onChange={(value) => setForceValue(Number(value))}
               />
               <InputNumber
+                value={forceDistance}
                 name="strengthDistance"
                 min={0}
                 max={beamLength}
@@ -889,12 +895,14 @@ export default function Home() {
           <Box>
             <Stack spacing={10}>
               <InputNumber
+                value={momentValue}
                 focusBorderColor="purple.500"
                 name="momentValue"
                 label="Momento ( + anti-horário )"
                 onChange={(value) => setMomentValue(Number(value))}
               />
               <InputNumber
+                value={momentDistance}
                 focusBorderColor="purple.500"
                 name="distanceMoment"
                 max={beamLength}
@@ -953,6 +961,7 @@ export default function Home() {
               </HStack>
               <HStack>
                 <InputNumber
+                  value={weightStartPoint}
                   focusBorderColor="pink.500"
                   min={0}
                   max={beamLength}
@@ -961,6 +970,7 @@ export default function Home() {
                   onChange={(value) => setWeightStartPoint(Number(value))}
                 />
                 <InputNumber
+                  value={weightEndPoint}
                   focusBorderColor="pink.500"
                   label="Final da carga ( m )"
                   min={weightStartPoint}
@@ -1059,6 +1069,7 @@ export default function Home() {
         <Box mt={6}>
           <HStack spacing={8} w={400}>
             <InputNumber
+              value={rectangularBeam.a}
               name="base"
               label="Base da retângulo:"
               w={36}
@@ -1067,6 +1078,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={rectangularBeam.b}
               name="altura"
               label="Altura do retângulo:"
               w={36}
@@ -1081,6 +1093,7 @@ export default function Home() {
       {beamProfile == "circular" && (
         <Box mt={6}>
           <InputNumber
+            value={circularBeam.r}
             name="raio"
             label="Raio do círculo:"
             w={36}
@@ -1093,6 +1106,7 @@ export default function Home() {
         <Box mt={6}>
           <HStack spacing={8} w={400}>
             <InputNumber
+              value={triangularBeam.b}
               name="base"
               label="Base do triângulo:"
               w={64}
@@ -1101,6 +1115,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={triangularBeam.h}
               name="altura"
               label="Altura do triângulo:"
               w={64}
@@ -1111,10 +1126,12 @@ export default function Home() {
           </HStack>
         </Box>
       )}
+
       {beamProfile == "I" && (
         <Box mt={6}>
           <HStack spacing={8} w={400}>
             <InputNumber
+              value={IBeam.horizontal.b}
               name="baseHorizontal"
               label="Base da seção horizontal:"
               w={64}
@@ -1126,6 +1143,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={IBeam.horizontal.h}
               name="alturaHorizontal"
               label="Altura da seção horizontal:"
               w={64}
@@ -1137,6 +1155,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={IBeam.vertical.b}
               name="baseVertical"
               label="Base da seção vertical:"
               w={64}
@@ -1148,6 +1167,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={IBeam.vertical.h}
               name="alturaVertical"
               label="Altura da seção vertical:"
               w={64}
@@ -1161,10 +1181,12 @@ export default function Home() {
           </HStack>
         </Box>
       )}
+
       {beamProfile == "H" && (
         <Box mt={6}>
           <HStack spacing={8} w={400}>
             <InputNumber
+              value={HBeam.horizontal.b}
               name="baseHorizontal"
               label="Base da seção horizontal:"
               w={64}
@@ -1176,6 +1198,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={HBeam.horizontal.h}
               name="alturaHorizontal"
               label="Altura da seção horizontal:"
               w={64}
@@ -1187,6 +1210,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={HBeam.vertical.b}
               name="baseVertical"
               label="Base da seção vertical:"
               w={64}
@@ -1198,6 +1222,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={HBeam.vertical.h}
               name="alturaVertical"
               label="Altura da seção vertical:"
               w={64}
@@ -1211,10 +1236,12 @@ export default function Home() {
           </HStack>
         </Box>
       )}
+
       {beamProfile == "T" && (
         <Box mt={6}>
           <HStack spacing={8} w={400}>
             <InputNumber
+              value={TBeam.horizontal.b}
               name="baseHorizontal"
               label="Base da seção horizontal:"
               w={64}
@@ -1226,6 +1253,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={TBeam.horizontal.h}
               name="alturaHorizontal"
               label="Altura da seção horizontal:"
               w={64}
@@ -1237,6 +1265,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={TBeam.vertical.b}
               name="baseVertical"
               label="Base da seção vertical:"
               w={64}
@@ -1248,6 +1277,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={TBeam.vertical.h}
               name="alturaVertical"
               label="Altura da seção vertical:"
               w={64}
@@ -1261,10 +1291,12 @@ export default function Home() {
           </HStack>
         </Box>
       )}
+
       {beamProfile == "U" && (
         <Box mt={6}>
           <HStack spacing={8} w={400}>
             <InputNumber
+              value={UBeam.horizontal.b}
               name="baseHorizontal"
               label="Base da seção horizontal:"
               w={64}
@@ -1276,6 +1308,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={UBeam.horizontal.h}
               name="alturaHorizontal"
               label="Altura da seção horizontal:"
               w={64}
@@ -1287,6 +1320,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={UBeam.vertical.b}
               name="baseVertical"
               label="Base da seção vertical:"
               w={64}
@@ -1298,6 +1332,7 @@ export default function Home() {
               }
             />
             <InputNumber
+              value={UBeam.vertical.h}
               name="alturaVertical"
               label="Altura da seção vertical:"
               w={64}
@@ -1317,6 +1352,7 @@ export default function Home() {
       <Box mt={6} w={1000} mb={6}>
         <Flex gap={5} align="end" justify="center">
           <InputNumber
+            value={xSectionChosen}
             min={0}
             max={beamLength}
             name="momentDistance"
@@ -1326,6 +1362,7 @@ export default function Home() {
 
           {beamProfile == "retangular" && (
             <InputNumber
+              value={distanceNeutralAxis}
               min={0}
               max={rectangularBeam.b}
               name="yDistance"
@@ -1335,6 +1372,7 @@ export default function Home() {
           )}
           {beamProfile == "circular" && (
             <InputNumber
+              value={distanceNeutralAxis}
               min={0}
               max={2 * circularBeam.r}
               name="yDistance"
@@ -1344,6 +1382,7 @@ export default function Home() {
           )}
           {beamProfile == "triangular" && (
             <InputNumber
+              value={distanceNeutralAxis}
               min={0}
               max={triangularBeam.h}
               name="yDistance"
@@ -1353,6 +1392,7 @@ export default function Home() {
           )}
           {beamProfile == "I" && (
             <InputNumber
+              value={distanceNeutralAxis}
               min={0}
               max={IBeam.vertical.h + 2 * IBeam.horizontal.h}
               name="yDistance"
@@ -1362,6 +1402,7 @@ export default function Home() {
           )}
           {beamProfile == "H" && (
             <InputNumber
+              value={distanceNeutralAxis}
               min={0}
               max={HBeam.vertical.h}
               name="yDistance"
@@ -1371,6 +1412,7 @@ export default function Home() {
           )}
           {beamProfile == "T" && (
             <InputNumber
+              value={distanceNeutralAxis}
               min={0}
               max={TBeam.vertical.h + TBeam.horizontal.h}
               name="yDistance"
@@ -1380,6 +1422,7 @@ export default function Home() {
           )}
           {beamProfile == "U" && (
             <InputNumber
+              value={distanceNeutralAxis}
               min={0}
               max={UBeam.vertical.h}
               name="yDistance"
