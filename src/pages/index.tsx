@@ -79,7 +79,6 @@ export default function Home() {
   /*Vetores de forças, momentos e cargas*/
   const [forces, setForces] = useState<ForceMomentProps[]>([
     { id: 1, type: "force", distance: 2, value: -10 },
-    { id: 2, type: "force", distance: 12, value: -20 },
   ]);
 
   const [moments, setMoments] = useState<ForceMomentProps[]>([]);
@@ -553,11 +552,16 @@ export default function Home() {
               forcasAnteriores * (array[i].distance - array[i - 1].distance);
           } else if (array[i].type == "force") {
             if (array[i - 1].type == "weight") {
-              draft.push([array[i].distance, yAnterior + array[i].value]);
+              if(array[i] == array[array.length - 1]){
+                draft.push([array[i].distance, yAnterior - array[i].value * (array[i].distance - (array[i - 1].distance + array[i-1].length))]);
+              }else{
+                draft.push([array[i].distance, yAnterior - forcasAnteriores ]);
 
-              yAnterior += array[i].value;
+                yAnterior += array[i].value;
+  
+                forcasAnteriores += array[i].value;
+              }
 
-              forcasAnteriores += array[i].value;
             } else {
               if(array[i] == array[array.length -1]){
                 draft.push([
@@ -628,9 +632,8 @@ export default function Home() {
               }
             }
 
-            yAnterior +=
-              -Integral.integrate(expressionShearForce, 0, array[i].length) +
-              forcasAnteriores * array[i].length;
+            yAnterior += -Integral.integrate(expressionShearForce, 0, array[i].length) + forcasAnteriores * array[i].length;
+            // forcasAnteriores = (array[i].coefficientC  * array[i].length)  - forcasAnteriores;
           }
         }
 
