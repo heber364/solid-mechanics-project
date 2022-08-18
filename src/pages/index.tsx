@@ -1463,7 +1463,7 @@ export default function Home() {
         <Divider mt={2} mb={3} />
         <HStack spacing={10}>
           <Text fontSize={18}>Centróide da figura: {centroid} [ m ]</Text>
-          <Text fontSize={18}>Momento de Inércia: {centroid} [ m^4 ]</Text>
+          <Text fontSize={18}>Momento de Inércia: {momentInertia} [ m^4 ]</Text>
         </HStack>
 
         <Divider mt={3} mb={4} />
