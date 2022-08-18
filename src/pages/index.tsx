@@ -670,10 +670,10 @@ export default function Home() {
 
   function loadNormalShear() {
     var centroid = 0;
-    var momentInertiaAux;
-    var maximumNormalShearAux;
-    var minimumNormalShearAux;
-    var normalShearAux;
+    var momentInertiaAux = 0;
+    var maximumNormalShearAux = 0;
+    var minimumNormalShearAux = 0;
+    var normalShearAux = 0;
 
     if (beamProfile == "retangular") {
       centroid = rectangularBeam.b / 2;
