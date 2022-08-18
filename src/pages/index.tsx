@@ -36,11 +36,14 @@ import {
   SupportProps,
   RectangularBeamProps,
   MaximumMomentProps,
+  CircularBeamProps,
 } from "../utils/interfaceProps";
+
 import Chart from "react-google-charts";
 
 export default function Home() {
-  const [updateUseEffect, setUpdateUseEffect] = useState(false);
+  const [updateUseEffect1, setUpdateUseEffect1] = useState(false);
+  const [updateUseEffect2, setUpdateUseEffect2] = useState(false);
   /*Valores temporarios dos inputs*/
 
   /*Etapa 1*/
@@ -106,12 +109,16 @@ export default function Home() {
     b: 0,
   });
 
+  const [circularBeam, setCircularBeam] = useState<CircularBeamProps>({
+    r: 0,
+  });
+
   const [xSectionChosen, setXSectionChosen] = useState(0);
   const [distanceNeutralAxis, setDistanceNeutralAxis] = useState(0);
 
   const [momentChosen, setMomentChosen] = useState(0);
-  const [normalShear, setNormalShear ] = useState(0);
-  const [maximumNormalShear, setMaximumNormalShear ] = useState(0);
+  const [normalShear, setNormalShear] = useState(0);
+  const [maximumNormalShear, setMaximumNormalShear] = useState(0);
   /******/
 
   /*Salva as forças em um vetor*/
@@ -403,7 +410,6 @@ export default function Home() {
   }
 
   function loadMomentChartData() {
-
     var forcesAndMoments = [...forces, ...moments, ...weights];
 
     /* Ordena vetor de forças e momentos  */
@@ -460,8 +466,7 @@ export default function Home() {
       }
 
       for (let i = 0; i < array.length; i++) {
-
-        if(array[i].distance == momentAuxPosition){
+        if (array[i].distance == momentAuxPosition) {
           momentAuxValue = array[i].value;
         }
 
@@ -531,13 +536,19 @@ export default function Home() {
 
               if (yAnterior + aux > maximumMomentValue) {
                 maximumMomentPosition = array[i].distance + j;
-                maximumMomentValue = Number(parseFloat(String(yAnterior + aux)).toFixed(2));
+                maximumMomentValue = Number(
+                  parseFloat(String(yAnterior + aux)).toFixed(2)
+                );
               }
 
-              let positionAux = Number(parseFloat(String(array[i].distance + j )).toFixed(2));
+              let positionAux = Number(
+                parseFloat(String(array[i].distance + j)).toFixed(2)
+              );
 
-              if(positionAux == momentAuxPosition ){
-                momentAuxValue = Number(parseFloat(String(yAnterior + aux)).toFixed(2));
+              if (positionAux == momentAuxPosition) {
+                momentAuxValue = Number(
+                  parseFloat(String(yAnterior + aux)).toFixed(2)
+                );
               }
             }
 
@@ -551,8 +562,6 @@ export default function Home() {
           maximumMomentPosition = array[i].distance;
           maximumMomentValue = yAnterior;
         }
-
-
       }
     });
 
@@ -566,31 +575,32 @@ export default function Home() {
     setChartData2(newData);
   }
 
-
   useEffect(() => {
     handleCalculateSupportReactions();
     handleOrderForcesByPosition();
     loadSheaForceGraphData();
     loadMomentChartData();
-  }, [supportType, forces, moments, weights, beamProfile]);
+  }, [updateUseEffect1]);
 
   useEffect(() => {
     loadMomentChartData();
     loadNormalShear();
-  }, [updateUseEffect]);
+  }, [updateUseEffect2]);
 
   /*Etapa 2*/
- 
 
-  function loadNormalShear(){
+  function loadNormalShear() {
+    let momentInertia =
+      (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
+    console.log("Momento de inercia:", momentInertia);
 
-    let momentInertia = (rectangularBeam.a * Math.pow(rectangularBeam.b, 3)) / 12;
-    console.log("Momento de inercia:", momentInertia)
-    let maximumNormalShearAux = (maximumMoment.value * (rectangularBeam.b/2)) / momentInertia;
-    let normalShearAux = (momentChosen * (distanceNeutralAxis)) / momentInertia;
+    let maximumNormalShearAux =
+      (maximumMoment.value * (rectangularBeam.b / 2)) / momentInertia;
+
+    let normalShearAux = (momentChosen * distanceNeutralAxis) / momentInertia;
 
     setNormalShear(normalShearAux);
-    setMaximumNormalShear(maximumNormalShearAux)
+    setMaximumNormalShear(maximumNormalShearAux);
   }
 
   return (
@@ -628,12 +638,12 @@ export default function Home() {
                 label="Valor da força ( + pra cima )"
                 onChange={(value) => setForceValue(Number(value))}
               />
-              <Slider
+              <InputNumber
                 name="strengthDistance"
-                label="Local de aplicação da força"
-                beamLength={beamLength}
-                onSliderValueChange={setForceDistance}
-                sliderValue={forceDistance}
+                min={0}
+                max={beamLength}
+                label="Local de aplicação da força ( m )"
+                onChange={(value) => setForceDistance(Number(value))}
               />
               <Button
                 colorScheme="blue"
@@ -665,13 +675,12 @@ export default function Home() {
                 label="Momento ( + anti-horário )"
                 onChange={(value) => setMomentValue(Number(value))}
               />
-              <Slider
-                colorScheme="purple"
+              <InputNumber
+                focusBorderColor="purple.500"
                 name="distanceMoment"
-                label="Localização de aplicação do momento"
-                beamLength={beamLength}
-                onSliderValueChange={setMomentDistance}
-                sliderValue={momentDistance}
+                max={beamLength}
+                label="Localização de aplicação do momento ( + anti-horário )"
+                onChange={(value) => setMomentDistance(Number(value))}
               />
               <Button
                 colorScheme="purple"
@@ -697,7 +706,7 @@ export default function Home() {
 
           <Box>
             <Heading as="h2" size="sm" mb={3}>
-              Equação que descreve a carga ( + pra cima )
+              Equação que descreve a carga ( + pra baixo)
             </Heading>
             <Stack spacing={10}>
               <HStack spacing={6}>
@@ -723,15 +732,24 @@ export default function Home() {
                   onChange={(c) => setCoefficientC(Number(c))}
                 />
               </HStack>
-
-              <RangeSlider
-                colorScheme="pink"
-                name="distanceCharge"
-                label="Distribuição da Carga"
-                beamLength={beamLength}
-                onRangeSliderValueChange={handleChangeStartAndEndPointWeight}
-                rangeSliderValue={[weightStartPoint, weightEndPoint]}
-              />
+              <HStack>
+                <InputNumber
+                  focusBorderColor="pink.500"
+                  min={0}
+                  max={beamLength}
+                  label="Início da carga ( m )"
+                  name="chargeCValue"
+                  onChange={(value) => setWeightStartPoint(Number(value))}
+                />
+                <InputNumber
+                  focusBorderColor="pink.500"
+                  label="Final da carga ( m )"
+                  min={weightStartPoint}
+                  max={beamLength}
+                  name="chargeCValue"
+                  onChange={(value) => setWeightEndPoint(Number(value))}
+                />
+              </HStack>
               <Button
                 colorScheme="pink"
                 onClick={() => handleSaveWeightsInVectorWeight()}
@@ -761,6 +779,13 @@ export default function Home() {
         </Flex>
       </Stack>
 
+      <Button
+        colorScheme="cyan"
+        mt={8}
+        onClick={() => setUpdateUseEffect1(!updateUseEffect1)}
+      >
+        CALCULAR
+      </Button>
       <HStack spacing={12} mt={12}>
         <Text fontSize="2xl">
           Reação de apoio em A: Ay:
@@ -828,6 +853,17 @@ export default function Home() {
         </Box>
       )}
 
+      {beamProfile == "circular" && (
+        <Box className="Viga retangular" mt={6}>
+          <InputNumber
+            name="raio"
+            label="Raio da viga (r)"
+            w={36}
+            onChange={(raio) => setCircularBeam({ r: Number(raio) })}
+          />
+        </Box>
+      )}
+
       <Divider mt={4} />
 
       <Box mt={6} w={1000} mb={6}>
@@ -839,38 +875,48 @@ export default function Home() {
             label="Posição (x) da viga:"
             onChange={(x) => setXSectionChosen(Number(x))}
           />
-          
-          <InputNumber 
-            min={-rectangularBeam.b/2}
-            max={rectangularBeam.b/2}
+
+          <InputNumber
+            min={-rectangularBeam.b / 2}
+            max={rectangularBeam.b / 2}
             name="yDistance"
             label="Distância (y) do eixo neutro:"
             onChange={(y) => setDistanceNeutralAxis(Number(y))}
-           />
+          />
 
           <Button
             colorScheme="cyan"
-            onClick={() => setUpdateUseEffect(!updateUseEffect)}
-            pl={20} 
+            onClick={() => setUpdateUseEffect2(!updateUseEffect2)}
+            pl={20}
             pr={20}
-            >
+          >
             Calcular tensão normal
           </Button>
         </Flex>
       </Box>
-      <Divider mt={4} mb={2} />
-      <Box>
-        <Heading as="h2" fontSize={24} bgColor="cyan.500" pl={2}>Resultados:</Heading>
-        <HStack spacing={64}>
-          <Text fontSize={20}>Momento Máximo: {maximumMoment.value} [ N / m ]</Text>
-          <Text fontSize={20}>Tensão normal máxima: {maximumNormalShear} [ Pa ]</Text>  
-        </HStack> 
-        <HStack spacing={36}>
-          <Text fontSize={20}>Momento da posição escolhida: {momentChosen} [ N / m ]</Text>
-          <Text fontSize={20}>Tensão normal escolhida: {normalShear} [ Pa ]</Text>
 
+      <Box pb={28}>
+        <Divider mt={2} mb={2} />
+        <Heading as="h2" fontSize={32} bgColor="gray.800">
+          Resultados:
+        </Heading>
+        <Divider mt={2} mb={4} />
+        <HStack spacing={64}>
+          <Text fontSize={20}>
+            Momento Máximo: {maximumMoment.value} [ N / m ]
+          </Text>
+          <Text fontSize={20}>
+            Tensão normal máxima: {maximumNormalShear} [ Pa ]
+          </Text>
         </HStack>
-        
+        <HStack spacing={36}>
+          <Text fontSize={20}>
+            Momento da posição escolhida: {momentChosen} [ N / m ]
+          </Text>
+          <Text fontSize={20}>
+            Tensão normal escolhida: {normalShear} [ Pa ]
+          </Text>
+        </HStack>
       </Box>
     </Flex>
   );

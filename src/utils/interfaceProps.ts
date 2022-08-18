@@ -34,6 +34,11 @@
     a: number;
     b:number;
   }
+  
+  export interface CircularBeamProps{
+    r: number;
+    
+  }
 
   export interface MaximumMomentProps{
     position: number;
